@@ -21,3 +21,15 @@
 
 ## synctex source correlation data
 *.synctex.gz
+
+## compiled pdf
+*.pdf
+
+## table of contents
+*.toc
+
+## list of figures
+*.lof
+
+## list of tables
+*.lot
