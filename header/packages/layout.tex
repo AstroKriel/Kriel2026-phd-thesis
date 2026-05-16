@@ -1,0 +1,27 @@
+\usepackage[
+  a4paper,
+  inner=35mm,  % wider inner margin for binding (twoside)
+  outer=25mm,  % outer margin
+  top=30mm,
+  bottom=30mm
+]{geometry}
+
+\usepackage{setspace} % line spacing
+\AtBeginDocument{\setstretch{1.5}}
+
+\usepackage{parskip} % no indent + vertical space between paragraphs
+
+\setcounter{tocdepth}{3} % show subsubsection(s) in ToC
+\setcounter{secnumdepth}{4} % number subsubsection(s) in ToC
+
+\usepackage{etoolbox} % patch existing heading macros (keep extreport sizing/spacing)
+
+\makeatletter
+\patchcmd{\@makechapterhead}{\bfseries}{}{}{} % chapter: remove bold only
+\patchcmd{\@makeschapterhead}{\bfseries}{}{}{} % unnumbered chapter: remove bold only
+
+\patchcmd{\section}{\bfseries}{}{}{} % section: remove bold only
+\patchcmd{\subsection}{\bfseries}{}{}{} % subsection: remove bold only
+\patchcmd{\subsubsection}{\bfseries}{}{}{} % subsubsection: remove bold only
+\patchcmd{\paragraph}{\bfseries}{}{}{} % paragraph: remove bold only
+\makeatother

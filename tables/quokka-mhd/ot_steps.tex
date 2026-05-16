@@ -1,0 +1,44 @@
+\begin{table}
+\centering
+\caption{Number of time steps required to reach $t=1$ (third column) and number of first-order flux corrections (right column) for the Orszag-Tang test using different schemes for interpolation, EMF reconstruction (first column), and averaging (second column).
+\label{tab:ot_steps}
+}
+\begin{tabular}{llcr}
+\hline\hline
+Reconstruction & Averaging & N. time steps & N. FOFC steps  \\
+\hline
+\multicolumn{4}{c}{PLM interpolation} \\
+\hline
+FS18 & LD04  &  15985 & 0 \\
+FS18 & B25a  &  15989 & 0 \\
+B25b & LD04  &  16005 & 0 \\
+B25b & B25a  &  15948 & 0 \\
+Q26  & LD04  & 18335 & 0 \\
+Q26  & B25a  &  19339 & 0 \\
+\hline
+\multicolumn{4}{c}{PPM interpolation} \\
+\hline
+FS18 & LD04  &  16149 & 0 \\
+FS18 & B25a  &  16153 & 0 \\
+B25b & LD04  &  16210 & 0 \\
+B25b & B25a  &  16282 & 0 \\
+Q26  & LD04  &   41231 & 0 \\
+Q26  & B25a  &  \,$^{\dagger}$ & 0 \\
+\hline
+\multicolumn{4}{c}{PPM-EP interpolation} \\
+\hline
+FS18 & LD04  &  16295 & 0 \\
+FS18 & B25a  &  16286 & 0 \\
+B25b & LD04  &  16483 & 0 \\
+B25b & B25a  &  16527 & 0 \\
+Q26  & LD04  & \,$^{\ddagger}$ & 80 \\
+Q26  & B25a  & \,$^{\ddagger}$ & 80 \\
+\hline\hline
+\end{tabular}
+\vspace{0.5ex}
+\begin{flushleft}
+\footnotesize
+$^{\dagger}$~Run terminated early because the time step became prohibitively small.\\
+$^{\ddagger}$~Run became numerically unstable and crashed before reaching the final time.
+\end{flushleft}
+\end{table}

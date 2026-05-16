@@ -1,0 +1,18 @@
+\begin{table}
+\centering
+\caption{Weak scaling test results for different schemes and GPU counts in a test with $128^3$ cells per GPU. The first two columns indicate the EMF reconstruction and averaging schemes, and the remaining columns show results as a function of GPU count. Entries in the remaining columns report the cell advance time $t_\mathrm{adv}$ in units of ns, defined as the amount of GPU time required to advance a single cell through one time step, and different GPU counts $N_\mathrm{GPU}$.}
+\label{tab:weak_scaling_zone_update_times_ngpu}
+\begin{tabular}{llrrrr}
+\hline\hline
+& & \multicolumn{4}{c}{$t_\mathrm{adv}/\mathrm{ns}$ at $N_\mathrm{GPU}=\cdots$} \\
+Reconstruction & Averaging & 1 & 8 & 64 & 512 \\
+\hline
+FS18 & LD04  & 34.65 & 34.94 & 36.84 & 48.51 \\
+FS18 & B25a  & 34.76 & 34.88 & 36.74 & 39.83 \\
+B25b & LD04  & 27.58 & 28.71 & 31.44 & 37.69 \\
+B25b & B25a  & 27.65 & 28.94 & 31.58 & 46.07 \\
+Q26  & LD04  & 21.19 & 23.12 & 27.24 & 30.58 \\
+Q26  & B25a  & 21.23 & 23.02 & 27.01 & 29.44 \\
+\hline\hline
+\end{tabular}
+\end{table}

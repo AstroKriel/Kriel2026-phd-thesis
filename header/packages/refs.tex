@@ -1,0 +1,90 @@
+%% -------- bibliography design note (2026-01)
+%%
+%% goal
+%% - use the official mnras bibliography style (lowest risk, stable output)
+%% - allow per-chapter reference lists for selected chapters (papers in ch 3–5)
+%% - also produce a final, global reference list at the end of the thesis
+%%
+%% design choice
+%% - use natbib + bibtex with mnras.bst (official mnras bst)
+%% - use bibunits to create local bibliographies only where wrapped in \begin{bibunit}...\end{bibunit}
+%% - enable globalcitecopy so citations in bibunits also appear in the final global bibliography
+%%
+%% key files / settings
+%% - mnras.bst is stored in Header/bst/mnras.bst (not in project root)
+%% - project root includes latexmkrc to set BSTINPUTS so bibtex can find Header/bst/
+%% - refs are stored in Header/refs.bib
+%% - overleaf bibliography tool must be bibtex (not biber)
+%%
+%% usage
+%% - for chapters needing local refs:
+%%     \begin{bibunit}
+%%     \chapter{...}
+%%     ...
+%%     \putbib
+%%     \end{bibunit}
+%% - for final thesis refs (at end of main.tex):
+%%     \bibliographystyle{mnras}
+%%     \bibliography{Header/refs}
+%%
+%% if something breaks
+%% - do not mix biblatex (\addbibresource, \printbibliography) with bibtex (\bibliography)
+%% - if bibtex cannot find mnras.bst, check latexmkrc (BSTINPUTS) and bst path
+%% - if local bibs are missing entries from global refs, check bibunits option globalcitecopy
+
+\usepackage[authoryear]{natbib} % author–year citations
+
+\usepackage[sectionbib,globalcitecopy]{bibunits}
+% sectionbib: local bib heading as a section (nicer inside a chapter) :contentReference[oaicite:2]{index=2}
+% globalcitecopy: citations in bibunits also appear in the global bibliography :contentReference[oaicite:3]{index=3}
+
+\defaultbibliography{header/refs} % references
+\defaultbibliographystyle{header/mnras} % local mnras.bst
+
+%% -------- bibliography debug checklist (natbib + bibtex + mnras + bibunits)
+%%
+%% 0) confirm we are using the right system
+%% - do not load biblatex anywhere (no \usepackage{biblatex})
+%% - do not use \addbibresource or \printbibliography
+%% - do use natbib + bibtex output (\bibliographystyle + \bibliography)
+%%
+%% 1) overleaf tool setting
+%% - overleaf menu: bibliography tool must be bibtex (not biber)
+%%
+%% 2) mnras.bst not found
+%% symptoms
+%% - "I couldn't open style file mnras.bst"
+%% fixes
+%% - simplest: place mnras.bst in project root
+%% - if storing in Header/bst/, ensure project root has latexmkrc setting BSTINPUTS
+%%
+%% 3) .bib file path wrong
+%% symptoms
+%% - citations show as '?', bibtex cannot find database file
+%% fixes
+%% - global: \bibliography{Header/refs}  (no .bib extension)
+%% - bibunits default: \defaultbibliography{Header/refs}
+%%
+%% 4) local chapter bibliography missing
+%% fixes
+%% - wrap only those chapters:
+%%     \begin{bibunit}
+%%     \chapter{...}
+%%     ...
+%%     \putbib
+%%     \end{bibunit}
+%% - ensure \putbib is inside the bibunit and after citations
+%%
+%% 5) global bibliography missing items cited in bibunit chapters
+%% fix
+%% - ensure bibunits is loaded with globalcitecopy option
+%%
+%% 6) stale build issues
+%% fixes
+%% - overleaf: recompile from scratch / clear cached files
+%% - local: delete aux/bbl/blg/bu*.aux then recompile
+%%
+%% 7) quick sanity test
+%% - cite one ref outside bibunit and one inside
+%% - check local \putbib shows the bibunit ref
+%% - check final \bibliography shows both (requires globalcitecopy)

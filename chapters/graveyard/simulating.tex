@@ -1,0 +1,132 @@
+\section{Simulating Magnetised Flows}
+\label{sec:sims}
+
+for computational convenience, we absorb the factor of 4pi into b
+
+Gent: take over of a LSD from a SSD
+
+\subsection{Conservative Methods}
+\label{sec:sims:godunov}
+
+\subsubsection{The Riemann Problem}
+\label{sec:sims:riemann}
+
+a whole new family of waves wake up, and they invite many new types of instabilities that lead to interesting dynamics 
+
+Working in the ideal limit, and restricting our attention to 1D, we linearise \autoref{eqn:mhd:mass}-\ref{eqn:mhd:monopoles} about a uniform background state with background states \(\bar{\rho}\), \(\bar{\mVector{b}}\), and perturbed states \(\rho = \bar{\rho} + \delta{\rho}\), \(\mVector{u} = \delta{\mVector{u}}\) \(\mVector{b} = \bar{\mVector{b}} + \delta{\mVector{b}}\), which, in the reference frame of the fluid, \(\bar{\mVector{u}} = \mVector{0}\), yield the linearised system in matrix form
+\begin{align}
+    \mppFrac{(\delta{\mVector{S}_p})}{t}
+        + \mTensor{J}_p \mppFrac{(\delta{\mVector{S}_p})}{x}
+        = 0,
+\end{align}
+where the perturbed primitive states have been collected into a state vector \(\mVector{S}_p\), and the corresponding Jacobian matrix (capturing information about the couplings between quantities) is \(\mTensor{J}_p\),
+\begin{align}
+    \delta{\mVector{S}_p}
+        \equiv \begin{bmatrix}
+            \delta{\rho} \\
+            \delta{u_x} \\
+            \delta{u_y} \\
+            \delta{u_z} \\
+            \delta{b_y} \\
+            \delta{b_z}
+        \end{bmatrix}
+    , \qquad
+    \mTensor{J}_p
+        \equiv \begin{bmatrix}
+            0 & \bar{\rho} & 0 & 0 & 0 & 0 \\
+            c_s^2 / \bar{\rho} & 0 & 0 & 0 & \bar{b}_y / (4\pi\bar{\rho}) & \bar{b}_z / (4\pi\bar{\rho}) \\
+            0 & 0 & 0 & 0 & -\bar{b}_x / (4\pi\bar{\rho}) & 0 \\
+            0 & 0 & 0 & 0 & 0 & -\bar{b}_x / (4\pi\bar{\rho}) \\
+            0 & \bar{b}_y & -\bar{b}_x & 0 & 0 & 0 \\
+            0 & \bar{b}_z & 0 & -\bar{b}_x & 0 & 0
+        \end{bmatrix}.
+\end{align}
+The characteristic wavespeeds are given by the eigenvalues \(\lambda\) satisfying
+\begin{align}
+    \det(\mTensor{J}_p - \lambda\mTensor{I})
+        = \rbrac{\lambda^2 - \frac{(\bar{b}_x)^2}{4\pi\bar{\rho}}} \rbrac{
+            \lambda^4
+            - \rbrac{c_s^2 + (\bar{b}_x)^2} \lambda^2
+            + c_s^2\frac{(\bar{b}_x)^2}{4\pi\bar{\rho}}
+        }
+        = 0
+        , \label{eqn:mhd-system:characteristics}
+\end{align}
+where
+\begin{align}
+    \rbrac{u_A}^2
+        \equiv \frac{b^2}{4\pi\rho}.
+\end{align}
+is the Alfv\'en speed, which measures the speed at which transverse disturbances supported by magnetic tension, and \((\bar{u}_A)^2 \equiv (\bar{b})^2 / (4\pi\bar{\rho}),\) is its value on the background state.
+
+\autoref{eqn:mhd-system:characteristics} naturally factorises into a quadratic and quartic polynomial in \(\lambda\), which reveals all six characteristic wavespeeds. First, Alfv\'en waves can propagate in both directions along magnetic fields
+\begin{align}
+    \lambda_A^{(\pm)}
+        = \pm \frac{\bar{b}_x}{\sqrt{4\pi\bar{\rho}}},
+\end{align}
+and then there are fast and slow magnetosonic waves,
+\begin{align}
+    \lambda_f^{(\pm)}
+        &= \pm \frac{1}{2}\rbrac{
+            c_s^2
+            + (\bar{b}_x)^2
+            + \sqrt{
+                \rbrac{c_s^2 + (\bar{b}_x)^2}^2
+                - 4c_s^2\frac{(\bar{b}_x)^2}{4\pi\bar{\rho}}
+            }
+        }
+    , \\
+    \lambda_s^{(\pm)}
+        &= \pm \frac{1}{2}\rbrac{
+            c_s^2
+            + (\bar{b}_x)^2
+            - \sqrt{
+                \rbrac{c_s^2 + (\bar{b}_x)^2}^2
+                - 4c_s^2\frac{(\bar{b}_x)^2}{4\pi\bar{\rho}}
+            }
+        }
+        ,
+\end{align}
+respectively. Note, however, that the entropy mode, which would be present in adiabatic MHD, is absent here under the isothermal closure adopted in \autoref{sec:modelling:mhd}. Therefore we only have six of the seven modes,
+\begin{align}
+    \lambda_f^{(-)} \le \lambda_A^{(-)} \le \lambda_s^{(-)}
+    \le \lambda_s^{(+)} \le \lambda_A^{(+)} \le \lambda_f^{(+)}.
+\end{align}
+
+left and right leaning wrt (to the entropy mode and) co-moving frame of the fluid
+
+
+\subsubsection{Maintaining Monopole-free Fields}
+\label{sec:sims:ct}
+
+Lorentz forces, for Ampere's law without displacement current
+\begin{align}
+    \frac{1}{c} \mVector{j}\times\mVector{b}
+        &= \frac{1}{4\pi} (\mCurl{\mVector{b}})\times\mVector{b} \\
+        &= \frac{1}{4\pi} \rbrac{
+                \underbrace{
+                    b^2 (\mVectorUnit{b}\cdot\nabla)\mVectorUnit{b}
+                }_\text{tension}
+                - \overbrace{
+                    \frac{1}{2} \nabla_\perp b^2
+                }^\text{magnetic pressure}
+                - \underbrace{
+                    (\nabla\cdot\mVector{b})\mVector{b}
+                }_\text{\shortstack{spurious field-aligned\\ acceleration}}
+            }
+        ,
+\end{align}
+
+everything is approximated (even things you don't want to be), expect for what can't be.
+
+powell's 8-wave scheme (1999): resolve extra wave, then use source term to advect magnetic monopoles (8th wave) away; can give the wrong shock jump conditions
+
+brackbil and bams (1980), very expensive elliptic PDF, smooth discontinuities in b, cleaning
+
+dender 2002, lagrangian multiplier
+
+\subsection{Chasing Asymptotic Flow Regimes}
+
+Resolution challenges
+
+tearing instabilities

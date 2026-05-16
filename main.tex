@@ -1,0 +1,54 @@
+\documentclass[12pt,twoside]{extreport}
+
+\input{header/header}
+
+\begin{document}
+    \input{chapters/preamble/title-page}
+
+    \thispagestyle{empty}
+    \vspace*{\fill}
+    \begin{flushright}
+        To my mum and dad.
+    \end{flushright}
+    \vspace*{\fill}
+    \clearpage
+
+    \pagenumbering{roman}
+    \setcounter{page}{1}
+    
+    \input{chapters/preamble/abstract}
+    \input{chapters/preamble/statements}
+    \input{chapters/preamble/publications}
+    \input{chapters/preamble/thanks}
+
+    \tableofcontents
+    \clearpage
+    \begingroup
+        \footnotesize
+        \listoffigures
+    \endgroup
+    
+    \clearpage
+    \begingroup
+        \footnotesize
+        \listoftables
+    \endgroup
+
+    \clearpage
+    \pagenumbering{arabic}
+    \setcounter{page}{1}
+    
+    \input{chapters/thesis/introduction}
+    \input{chapters/papers/ssd-exp}
+    \input{chapters/papers/ssd-nl}
+    \input{chapters/papers/quokka-mhd}
+    \input{chapters/thesis/conclusion}
+    
+    \clearpage
+    \renewcommand{\bibsection}{%
+      \chapter*{References}%
+      \addcontentsline{toc}{chapter}{References}%
+    }
+    \bibliographystyle{header/mnras}
+    \bibliography{header/refs}
+\end{document}

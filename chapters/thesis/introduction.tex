@@ -1,0 +1,30 @@
+\chapter{Introduction}
+
+\noindent\hfill\parbox{0.85\textwidth}{\raggedleft
+\QuoteBy{I saw the best minds of my generation destroyed by madness, \dots angle-headed hipsters burning for the ancient heavenly connection to the starry dynamo in the machinery of night, \dots}{``Howl'' by Allen Ginsberg (1955)}
+}\par
+
+\vspace{1.5 cm}
+
+\section{A Dynamical View of Galactic Magnetism}
+
+While a galaxy's mass is largely concentrated in stars, planets, and black holes, most of its volume is filled by diffuse gas. Much of this gas is ionised and therefore in a plasma state, where a sea of electrons and ions can drift relative to one another, driving electric currents that in turn generate magnetic fields. Magnetic fields are therefore a natural consequence of plasma dynamics in galaxies, and unlike collisional gas interactions, allow plasmas to influence parts of flows far from where currents are produced. While these fields are not visible to our eyes, we have techniques that can reveal them (see \S\ref{sec:how-we-see}), and have shown that they not only thread an enormous range of scales in galaxies, from star-forming regions to large-scale outflows, but are already present in the first galaxies (see \S\ref{sec:what-we-see}).
+
+The plasma conditions of galaxies have evolved over cosmic time (see \S\ref{sec:evolve}), so the magnetic fields we infer today are unlikely to resemble primordial seed fields (see \S\ref{sec:modelling:magnetogenesis}). Instead, the first fields are believed to have been amplified and reorganised as galaxies assembled, through a process that is best described within the magnetohydrodynamic (MHD; see \S\ref{sec:modelling:mhd}) formalism.
+
+In the remainder of this introduction we provide a broad overview of the observations and theory that are relevant to this thesis. We begin by describing how magnetic fields are inferred and what is observed in and around galaxies, and then turn to the dynamical processes that amplify and reorganise fields. We close this introduction, in \S\ref{sec:intro:roadmap}, by framing the questions tackled in this thesis against this background.
+
+\input{chapters/thesis/introduction/seeing}
+
+\input{chapters/thesis/introduction/modelling}
+
+\section{Thesis Roadmap and Remaining Lacunae}
+\label{sec:intro:roadmap}
+
+The remainder of this thesis is organised around three paper-chapters. The first two chapters are published papers, and explore aspects of SSD amplification with particular emphasis on the role of compressibility. The final chapter is a code-development paper in the final stages of preparation, wherein we implement ideal MHD in a new astrophysical simulation code. Below we briefly motivate each chapter; each chapter also includes a dedicated introduction that provides further context and an overview of the relevant literature.
+
+\uline{\S\ref{chapter:ssd-exp} focuses on kinematic SSD amplification in compressible turbulence.} While the classical Kazantsev formalism provides a quantitative description of kinematic dynamo growth, it is most often (as discussed in \S\ref{sec:evolve:ssd}) interpreted through the lens of incompressible turbulence models. Extensions beyond the incompressible limit have been developed for compressible flows \citep[\eg][]{schober2012magnetic, bovino2013turbulent}, but their consequences for the generated magnetic structures remain comparatively less explored. This matters because compressibility introduces shocks and strong density intermittency that affect how SSDs operate \citep{federrath2016magnetic}. Because shocks potentially organise magnetic fields on large scales, compressibility may help explain the $\sim \mathrm{kpc}$-scale magnetic structure inferred in young galaxies (see \S\ref{sec:what-we-see}) at epochs when LSDs are unlikely to have had time to organise coherent fields. \S\ref{chapter:ssd-exp} explores whether compressibility can indeed help resolve this tension.
+
+\uline{\S\ref{chapter:ssd-nl} focuses on the nonlinear stage of SSD amplification}, when magnetic fields become dynamically important and begin to modify the stretching motions that amplify them. It is well understood that SSD growth is exponential in the kinematic stage, but the subsequent nonlinear evolution remains an active area of debate. While many theories make predictions for the growth rate, efficiency, and timescale of saturation, there has been a lack of systematic work to test them. These uncertainties are further exacerbated in compressible turbulence because shocks and strong intermittency introduce additional couplings. Progress has largely been limited by the fact that the nonlinear stage is transient and mediated by intermittent flows, so measurements from any single realisation are strongly stochastic. \S\ref{chapter:ssd-nl} therefore develops a statistical framework based on ensembles of simulations, designed to extract the deterministic behaviour underlying nonlinear SSD growth and to obtain measurements that can directly test proposed nonlinear theories.
+
+Finally, \uline{\S\ref{chapter:quokka} implements a new ideal-MHD constrained-transport (CT) scheme in the \textsc{Quokka} codebase}. Following the dynamical roads discussed in \S\ref{sec:evolve:paths}, it is clear that a single, self-consistent simulation of galaxy evolution requires resolving a wide dynamic range, from $\sim 10 \,\mathrm{kpc}$ down to $\sim 10 \,\mathrm{pc}$. This has been difficult to achieve with existing CPU-based codes, but is now becoming practical with next-generation, GPU-accelerated supercomputers, which \textsc{Quokka} was developed for from its outset. Until now, however, \textsc{Quokka} has lacked an MHD module. In \S\ref{chapter:quokka} we discuss our implementation of a new CT-based scheme, and validate that it  is both accurate enough for these applications, while remaining efficient enough to scale to the required resolutions.
