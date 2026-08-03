@@ -1208,12 +1208,12 @@ We validate our recommended scheme's ability to resolve tearing-mediated reconne
     \label{fig:current-sheet}
 \end{figure}
 
-\begin{figure*}
+\begin{sidewaysfigure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/orszag-tang-structure-zoomins.png}
+    \includegraphics[width=\textheight]{figures/quokka-mhd/results/orszag-tang-structure-zoomins.png}
     \caption{Current density magnitude, $\log_{10}\rbrac{\Delta x\, |\nabla\times\mVector{b}|}$, for the Orszag-Tang vortex (\sref{sec:scheme-comparison:orszag-tang:setup}) at $8192^2$ and $t=0.85$, run with our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction). White boxes on the full-domain panel (left) mark the two regions showing zoomed insets (right).}
     \label{fig:orszag-tang:zoomins}
-\end{figure*}
+\end{sidewaysfigure}
 
 Having shown in \sref{sec:scheme-comparison:reconnection} that our recommended scheme is one of only two EMF scheme combinations that remain stable with PPM-EP reconstruction for the \citet{HawleyStone95a} and \citet{Stone08a} current sheet problem, we now explore its resolved dynamics, using the same setup described there. We run this at $1024^2$ through to $t = 10$, with \cref{fig:current-sheet} showing the evolution of the out-of-plane current density across four snapshots. Initially, the magnetic field points along $x_1$ and reverses sign at $|x_0| = 0.25$, forming two thin, oppositely-signed current sheets (top-left panel); the velocity perturbation seeds the tearing instability that fragments these sheets into plasmoids (top-right panel). These rapidly merge and grow as the flow evolves, until, by $t = 10$ (bottom-right panel), only a single, larger island remains at each of the two reconnection sites.
 
