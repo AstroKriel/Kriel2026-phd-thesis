@@ -8,7 +8,7 @@ We begin by introducing the fluid framework and its governing conservation laws 
 \subsection{The Fluid Framework}
 \label{sec:modelling:fluid}
 
-Our Universe is made up of many, many particles, each of which is governed, at its most fundamental level, by quantum physics. However, on the astrophysical scales relevant for galaxy dynamics, quantum wave effects are negligible, so particle motion can be described classically, with trajectories determined by Newton's laws of motion. On these scales, tracking trajectories for each particle quickly becomes impractical, since the number of particles in almost all astrophysical systems is enormous. It is instead more useful to adopt a statistical description of particle populations, whereby the collective properties of particles are described through a distribution function $\phi(\mVector{x}, \mVector{v}, t)$, which gives the number density of particles in phase space $(\mVector{x}, \mVector{v})$, where $\mVector{x}$ is the particle's real-space position, $\mVector{v}$ is its velocity, and $t$ is time. At fixed $\mVector{x}$ and $t$, integrating $\phi$ over all velocities gives the local number density, 
+Our Universe is made up of many, many particles, each of which is governed, at its most fundamental level, by quantum physics. However, on the astrophysical scales relevant for galaxy dynamics, quantum wave effects are negligible, so particle motion can be described classically, with trajectories determined by Newton's laws of motion. On these scales, tracking trajectories for each particle quickly becomes impractical, since the number of particles in almost all astrophysical systems is enormous. It is instead more useful to adopt a statistical description of particle populations, whereby the collective properties of particles are described through a distribution function $\phi(\mVector{x}, \mVector{v}, t)$, which gives the number density of particles in phase space $(\mVector{x}, \mVector{v})$, where $\mVector{x}$ is the particle's real-space position, $\mVector{v}$ is its velocity, and $t$ is time. At fixed $\mVector{x}$ and $t$, integrating $\phi$ over all velocities gives the local number density,
 \begin{align}
     n(\mVector{x}, t)
         \equiv \int \phi(\mVector{x}, \mVector{v}, t)  \mdd^3v .
@@ -23,7 +23,7 @@ From this, we can immediately define macroscopic fields describing the fluid of 
         , \\
     \psi^{*}_\mathrm{tot}(\mVector{x}, t)
         &\equiv \frac{m}{2\rho(\mVector{x}, t)}\int \mVector{v}^{ 2} \phi(\mVector{x}, \mVector{v}, t)  \mdd^3v
-        , 
+        ,
 \end{align}
 with $m$ the particle mass. From this, we can also define other useful quantities, like the specific kinetic energy $\psi^{*}_\mathrm{kin} = u^2 / 2$, and the specific internal energy $\psi^{*}_\mathrm{int} = \psi^{*}_\mathrm{tot} - \psi^{*}_\mathrm{kin}$.
 
@@ -565,7 +565,7 @@ with large-scale growth expected when $\mathcal{D} \gtrsim \mathcal{O}(1 - 10)$.
 
 In large spiral galaxies, where differential rotation is both strong and coherent on $\sim \mathrm{kpc}$ scales, it is easy for this condition to be satisfied. For example, \citet{ntormousi2020dynamo} used direct numerical simulations to show that an $\alpha$-$\Omega$ LSD was active in a Milky Way-like galaxy, where an ordered field was measured to grow over $\sim 0.5 \,\mathrm{Gyr}$. This growth is consistent with our estimate for $\gamma$ above, which, for a typical spiral-galaxy, where $L \sim 10 \,\mathrm{kpc}$, $\alpha \sim 1 \,\mathrm{km} \,\mathrm{s}^{-1}$, and $r |\mdd \Omega / \mdd r| \sim \Omega \sim 30 \,\mathrm{km} \,\mathrm{s}^{-1} \,\mathrm{kpc}^{-1}$, gives $\gamma \approx 2\times 10^{-3} \,\mathrm{Myr}^{-1}$. As we discuss in the next section, this rate of amplification is notably slower than small-scale dynamo growth, which is driven by the same turbulent motions. The LSD is therefore unlikely to be the sole (or primary) mechanism for galactic magnetic field strengths, even in large spiral galaxies. The role of the LSD is even more questionable in smaller galaxies, where differential rotation is weaker and often less coherent. In these systems, the $\Omega$-effect becomes inefficient, and diffusion can more easily overwhelm large-scale growth, so an $\alpha$-$\Omega$ LSD struggles to explain the inferred field amplitudes. Nonetheless, the LSD provides a natural route to generating the coherent large-scale structure observed in spiral discs.
 
-% Parker (1955) phenomenology [Rincon 4.2.2]. Steenbeck, Krause \& Radler (1966), Vainshtein (1970), Moffatt (1970) [Rincon 4.3]. 
+% Parker (1955) phenomenology [Rincon 4.2.2]. Steenbeck, Krause \& Radler (1966), Vainshtein (1970), Moffatt (1970) [Rincon 4.3].
 
 \subsubsection{Small Scale Dynamos}
 \label{sec:evolve:ssd}
@@ -605,7 +605,7 @@ Using index notation for the moment, the first term $ b_i b_j \mpp_j u_i $ measu
 \end{align}
 This split reveals the three fundamental types of local actions that a flow can perform on a fluid element, namely, volume-preserving deformation $\mTensor{S}$, rigid rotation $\mTensor{R}$, and isotropic volume change $\mTensor{C}$ (with compression or expansion set by the sign of $\theta \equiv \mathrm{Tr}(\mTensor{C})$), respectively.
 
-The first model to demonstrate how fluctuating velocity fields can drive magnetic amplification was put forward by \citet{moffatt1961amplification} for incompressible flows ($\theta = 0$), and later extended by \citet{zel1984kinematic} to flows with finite correlation times. It is popularly referred to as the \textit{stretch-twist-fold} mechanism, and is best viewed as a pedagogical picture that explains how magnetic amplification is possible through a small set of repeatable, local deformations acting on a magnetic flux tube. In the language of \citet{beattie2023bulk} (see also \citealt{schekochihin2002spectra, seta2021saturation, sur2024role}; see, however, Footnote~4 in \citealt{beattie2023bulk}), these actions map naturally onto the strain and rotation tensors, $\mTensor{S}$ and $\mTensor{R}$, together with diffusion.
+The first model to demonstrate how fluctuating velocity fields can drive magnetic amplification was put forward by \citet{moffatt1961amplification} for incompressible flows ($\theta = 0$), and later extended by \citet{zel1984kinematic} to flows with finite correlation times. It is popularly referred to as the \textit{stretch-twist-fold} mechanism, and is best viewed as a pedagogical picture that explains how magnetic amplification is possible through a small set of repeatable, local deformations acting on a magnetic flux tube. In the language of \citet{beattie2023bulk} (see also \citealt{schekochihin2002spectra, seta2021saturation, sur2024role}), these actions map naturally onto the strain and rotation tensors, $\mTensor{S}$ and $\mTensor{R}$, together with diffusion.
 
 \begin{figure}
     \centering
