@@ -210,7 +210,7 @@ In the following we will explain the procedure for computing the EMF component o
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/schematics/b-common.pdf}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/schematics/b-common.pdf}
     \caption{Reconstruction of face-centred magnetic fields to the cell edge (green point), common to all EMF compute schemes: $b_0$ (blue points, $x_0$ faces) yields $b_0^{[B]}$ and $b_0^{[T]}$; $b_1$ (yellow points, $x_1$ faces) yields $b_1^{[L]}$ and $b_1^{[R]}$.}
     \label{fig:schematic:b-common}
 \end{figure}
@@ -223,7 +223,7 @@ Once the magnetic fields are reconstructed at the cell edges, the remaining step
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/schematics/u-fs18.pdf}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/schematics/u-fs18.pdf}
     \caption{Velocity reconstruction for the \citetalias{Felker18a} compute scheme: cell-centred $u_0$ and $u_1$ (white point) are reconstructed to cell faces (blue and yellow points) and then to the cell edge (green point), yielding four estimates $\bar{u}_{\cbrac{0,1}}^{[Q_\mathrm{II}]}$ (\cref{eqn:emf:fs18-average}), which combine with the magnetic field estimates (\cref{fig:schematic:b-common}) to give the EMF (\cref{eqn:emf:fs18}).}
     \label{fig:schematic:fs18}
 \end{figure}
@@ -258,7 +258,7 @@ where $S_\mathrm{I} \in \{L, R\}$ and $S_\mathrm{II} \in \{B, T\}$. These four E
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/schematics/b25.pdf}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/schematics/b25.pdf}
     \caption{Two-step EMF construction for the \citetalias{Balsara25a} compute scheme: $b_0$ and $b_1$ (blue and yellow points) are averaged to the cell centre (white point) to compute $\varepsilon_2$ there (\cref{eqn:emf:b25a-b-avg,eqn:emf:b25a-emf-centre}), and then reconstructed to the cell edge (green point), yielding four estimates $\bar{\varepsilon}_2^{[Q_\mathrm{II}]}$ (\cref{eqn:emf:b25a-average}).}
     \label{fig:schematic:b25}
 \end{figure}
@@ -298,7 +298,7 @@ Note that the \citetalias{Balsara25a} compute scheme does not directly make use 
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/schematics/u-q26.pdf}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/schematics/u-q26.pdf}
     \caption{Velocity reconstruction for the Q26 EMF compute scheme. Starting from face-normal velocities $u_0^{[*]}$ and $u_1^{[*]}$ (\cref{eqn:emf:q26-facevel}) at the $x_0$ and $x_1$ cell faces (blue and yellow points), these are reconstructed at the cell edge (green point) to yield $u_0^{[B]}$ and $u_0^{[T]}$, and $u_1^{[L]}$ and $u_1^{[R]}$. These combine with the magnetic fields reconstructed at the edge (\cref{fig:schematic:b-common}) to yield the EMF (\cref{eqn:emf:q26}).}
     \label{fig:schematic:q26}
 \end{figure}
@@ -379,7 +379,7 @@ where $\mVector{j} = \nabla\times\mVector{b}$ is the current density in (rationa
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/schematics/eta-constant.pdf}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/schematics/eta-constant.pdf}
     \caption{The constant-$\eta$ stencil for the Ohmic contribution to the edge-centred EMF $\varepsilon_2$ (green point), constructed from the four adjacent face-centred magnetic field values: $b_0$ (blue points) and $b_1$ (yellow points) (\cref{eqn:resistivity:current-stencil}). The corresponding stencils for $j_0$ and $j_1$ follow by cyclic permutation.}
     \label{fig:schematic:eta-constant}
 \end{figure}
@@ -428,14 +428,14 @@ where $\Delta{x}_\mathrm{min}$ is the smallest cell width on the AMR-level and $
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/quokka-mhd/schematics/flowchart.pdf}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/schematics/flowchart.pdf}
     \caption{Flow chart of the \quokka~time stepping strategy combining RK2-SSP with first order flux correction. Here quantities labelled as high-order (HO) are computed using either PLM, PPM, or PPM-EP reconstruction and the HLLD Riemann solver, while those labelled first-order (FO) are computed using PC reconstruction and the LLF Riemann solver.}
     \label{fig:schematic:flowchart}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/quokka-mhd/schematics/fofc.pdf}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/schematics/fofc.pdf}
     \caption{Illustration of the first-order flux correction (FOFC) strategy. The central cell is highlighted; its shared faces with neighbouring cells fall back to cached first-order (FO) estimates if the cell's high-order (HO) update predicts an invalid state.}
     \label{fig:fofc}
 \end{figure}
@@ -733,7 +733,7 @@ For all four waves we adopt $\rho_\mathrm{bg} = b_\mathrm{bg} = 1$, $p_\mathrm{b
 
 \begin{figure}
     \centering
-    \includegraphics[height=0.76\textheight]{figures/quokka-mhd/results/wave-convergence-grid-aligned.png}
+    \includegraphics[width=0.6\linewidth]{figures/quokka-mhd/results/wave-convergence-grid-aligned.png}
     \caption{Convergence of all 18 scheme combinations: EMF compute (indicated by colours; \sref{sec:methods:emf:compute}), EMF averaging (indicated by markers; \sref{sec:methods:emf:averaging}), and reconstruction (indicated by line style; \sref{sec:methods:flux}), against four wave-propagation scenarios: linearly-polarised Alfv\'en (first panel;
     \sref{sec:scheme-comparison:waves:alfven-linear}), circularly-polarised Alfv\'en (second panel; \sref{sec:scheme-comparison:waves:alfven-circular}), fast (third panel; \sref{sec:scheme-comparison:waves:fast}), and slow (last panel; \sref{sec:scheme-comparison:waves:slow}) waves. The relative error (\cref{defn:error:relative}) for each scheme combination is plotted against resolution (bottom axis), with the corresponding cell width shown on the top axis. A black dash-dotted line marks second-order convergence.}
     \label{fig:linear_wave_convergence}
@@ -896,14 +896,14 @@ We run this problem at a resolution of $256$ until $t = 0.1$. Unlike the Ryu-Jon
 
 \begin{figure*}
     \centering
-    \includegraphics[width=0.9\linewidth]{figures/quokka-mhd/results/ryu-jones-2a-shock-tube-scheme-comparison.png}
+    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/ryu-jones-2a-shock-tube-scheme-comparison.png}
     \caption{The \citet{RyuJones95a} shock tube test (\sref{sec:scheme-comparison:shocks:ryu-jones}) compared across 6 EMF scheme combinations run at $N = 512$ with PPM-EP reconstruction and our HLLD Riemann solver: EMF compute (indicated by colour; \sref{sec:methods:emf:compute}) and EMF averaging (indicated by marker; \sref{sec:methods:emf:averaging}). We also consider two more scheme combinations, both paired with Q26 compute and \citetalias{Balsara25b} averaging: our LLF Riemann solver with PPM-EP reconstruction (pink squares), and HLLD with plain PPM reconstruction (purple squares). Each panel shows the profile of key quantities at $t = 0.20$ along $x_0$, with the exact solution (black line) computed with the Riemann solver of \citet{Kriel26a}.}
     \label{fig:ryu-jones-profiles}
 \end{figure*}
 
 \begin{figure*}
     \centering
-    \includegraphics[width=0.9\linewidth]{figures/quokka-mhd/results/brio-wu-shock-tube-scheme-comparison.png}
+    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/brio-wu-shock-tube-scheme-comparison.png}
     \caption{The \citet{Brio88a} shock tube test (\sref{sec:scheme-comparison:shocks:brio-wu}) run at $N = 256$, across the same scheme combinations as \cref{fig:ryu-jones-profiles}, showing profiles of key quantities at $t = 0.1$. A reference solution (black line) is found by running the problem with Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction at $N = 8192$.}
     \label{fig:brio-wu-profiles}
 \end{figure*}
@@ -939,14 +939,14 @@ In this test, the first series of shocks collide at around $t \approx 0.5$, with
 
 \begin{figure*}
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/quokka-mhd/results/orszag-tang-emf-scheme-comparison.png}
+    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/orszag-tang-emf-scheme-comparison.png}
     \caption{Comparison of all 18 scheme combinations for the Orszag-Tang vortex (\sref{sec:scheme-comparison:orszag-tang:setup}) run at $1024^2$: reconstruction varies across rows (\sref{sec:methods:flux}), EMF compute across columns (\sref{sec:methods:emf:compute}), and both EMF averaging schemes (\sref{sec:methods:emf:averaging}) are compared in each panel. In each panel we compare snapshots at $t = 0.85$ of \citetalias{Londrillo04a} (red) in the top-left corner and \citetalias{Balsara25b} (blue) in the bottom-right corner, with contours tracing $\log_{10}\rbrac{\Delta x\, |\nabla\times\mVector{b}|} = -1.6$.}
     \label{fig:orszag-tang:emf-schemes}
 \end{figure*}
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/quokka-mhd/results/orszag-tang-reconstruction-scheme-comparison.png}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/results/orszag-tang-reconstruction-scheme-comparison.png}
     \caption{Comparison of PPM and PPM-EP reconstruction, using our recommended EMF combination (Q26 compute and \citetalias{Balsara25b} averaging), for the Orszag-Tang vortex run at $4096^2$, following the same format as \cref{fig:orszag-tang:emf-schemes}.}
     \label{fig:orszag-tang:reconstruction-schemes}
 \end{figure}
@@ -1010,7 +1010,7 @@ Since we run without explicit resistivity, reconnection is entirely mediated by 
 
 \begin{figure*}
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/quokka-mhd/results/performance-gpu-scaling.png}
+    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/performance-gpu-scaling.png}
     \caption{Comparison of 6 EMF scheme combinations for GPU throughput and scaling (\sref{sec:scheme-comparison:speed}), all paired with PPM-EP reconstruction: EMF compute (indicated by colour; \sref{sec:methods:emf:compute}) and EMF averaging (indicated by marker; \sref{sec:methods:emf:averaging}). Cell updates per second per GPU are shown for strong scaling at a fixed problem size of $512^3$ cells (left panel) and weak scaling at $128^3$ cells per GPU (right panel); lines indicate perfect scaling for each scheme combination.}
     \label{fig:gpu-scaling}
 \end{figure*}
@@ -1051,7 +1051,7 @@ We choose $\mVector{k}L/2\pi = \{1, 2, 3\}$ and $\theta \equiv \cos^{-1}\sbrac{\
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/slow-wave-polarisation-leakage.png}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/results/slow-wave-polarisation-leakage.png}
     \caption{The oblique slow magnetosonic wave's time-evolving, line-integrated energy ratio of the out-of-plane component, $b_2$, to the component that primarily carries the signal, $b_0$. Both runs use our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction), at $128^3$ (circles) and $512^3$ (squares). We report the statistically saturated ratio computed over the second wave period, $t/T \geq 1$, where $T$ is the wave period.}
     \label{fig:oblique-slow-wave}
 \end{figure}
@@ -1061,7 +1061,7 @@ We choose $\mVector{k}L/2\pi = \{1, 2, 3\}$ and $\theta \equiv \cos^{-1}\sbrac{\
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/quirk-odd-even-split.png}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/results/quirk-odd-even-split.png}
     \caption{The \citet{Quirk94a} odd-even decoupling test (\sref{sec:stress-tests:quirk}), run with our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction) at $128^2$ resolution, at $t \approx 0.66$. We show profiles of pressure along the $x_0$-axis for one of the perturbed rows (solid line; even $x_1$-index) and one unperturbed row (dashed line; odd $x_1$-index), with the \citet{Minoshima21a} shock-anisotropy correction disabled (red) and enabled (blue).}
     \label{fig:quirk-carbuncle}
 \end{figure}
@@ -1163,7 +1163,7 @@ We run the test at two resolutions, $64^2$ and $128^2$, to $t = 30\sqrt{2}/\delt
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/balsara-vortex-resolution-comparison.png}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/results/balsara-vortex-resolution-comparison.png}
     \caption{Slices of magnetic energy density in the \citet{Balsara04a} vortex (\sref{sec:stress-tests:balsara-vortex}), run with $\mathcal{M} = 0.01$ using our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction). Each quadrant of the domain reveals a different solution: $64^2$ on the left and $128^2$ on the right, the initial condition on top and the final state after $3$ completed advection periods on the bottom. A reference circle (radius $=2$) shows the energy containing portion of the vortex; we indicate the measured fraction of magnetic energy retained per orbit.}
     \label{fig:balsara-vortex}
 \end{figure}
@@ -1192,7 +1192,7 @@ where $r = \rbrac{x_0^2 + x_1^2 + x_2^2}^{1/2}$ and $R = 0.125$.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/blast-wave-resolution-comparison.png}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/results/blast-wave-resolution-comparison.png}
     \caption{Density slices for the \citet{BalsaraSpicer99a} blast wave (\sref{sec:stress-tests:blast-wave}) through the mid-plane at $t = 0.05$, normalised by the ambient background value; run with our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction). We compare $128^3$ (upper-left half) with $1024^3$ (in the lower-right), and show contours at $\log_{10}(\rho/\rho_\mathrm{bg}) = \pm 0.0075$.}
     \label{fig:blast-wave}
 \end{figure}
@@ -1206,7 +1206,7 @@ We validate our recommended scheme's ability to resolve tearing-mediated reconne
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/current-sheet-current-density-evolution.png}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/results/current-sheet-current-density-evolution.png}
     \caption{Evolution of the out-of-plane current density component $j_2 = \rbrac{\nabla \times \mVector{b}}_2$ for the \citet{HawleyStone95a} current sheet problem (\sref{sec:stress-tests:current-sheet}), run at $1024^2$ with our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction). We show slices at $t = 0$, $0.5$, $3$, and $10$. Colours show the signed-logarithmic value of $j_2$; the annotation along the right edge of each panel shows the minimum and maximum $j_2$ in each snapshot.}
     \label{fig:current-sheet}
 \end{figure}
@@ -1227,7 +1227,7 @@ Current sheets in this test span the full domain, and thus tearing actually sets
 
 \begin{figure*}
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/quokka-mhd/results/field-loop-div-b.png}
+    \includegraphics[width=\linewidth]{figures/quokka-mhd/results/field-loop-div-b.png}
     \caption{Field loop advection (\citet{Gardiner08a}; \sref{sec:stress-tests:field-loop}) with one level of static mesh refinement, run for a full period with our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction). The left panel shows a slice of $\nabla\cdot\mVector{b}$, at a time $t / T \approx 0.67$ where the loop is partially embedded within the refined region. The right panel shows the distribution of $\nabla\cdot\mVector{b}$ values evolving throughout the run, with colours showing time in units of the advection period $T$.}
     \label{fig:stress-tests:field-loop}
 \end{figure*}
@@ -1271,7 +1271,7 @@ Since $\delta b \ll 1$ (magnetic pressure is far smaller than the background pre
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/quokka-mhd/results/alfven-wave-linear-resistive-decay-rate.png}
+    \includegraphics[width=0.5\linewidth]{figures/quokka-mhd/results/alfven-wave-linear-resistive-decay-rate.png}
     \caption{Measured decay rate of the resistively-damped Alfv\'en wave (\sref{sec:stress-tests:resistivity}) compared with the input resistivity $\eta$, run with our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction) at a fixed resolution of $N=256$. The dotted line shows the analytic prediction $\lambda = \eta k^2/2$.}
     \label{fig:resistive-alfven-decay}
 \end{figure}
