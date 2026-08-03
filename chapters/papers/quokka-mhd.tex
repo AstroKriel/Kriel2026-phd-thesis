@@ -190,12 +190,10 @@ The second step in advancing the MHD equations in time, which occurs after the f
 \begin{align}
     &\mpFrac{b_0}{t}\EvalAtV{i + 1/2}{j}{k}
         =  \frac{1}{\Delta{x_1}\, \Delta{x_2}} \Bigg(
+            \Delta{x_2} \, \varepsilon_2\EvalAtV{i + 1/2}{j - 1/2}{k}
         \nonumber \\
         &\nquad[3]
-            \Delta{x_2} \, \varepsilon_2\EvalAtV{i + 1/2}{j - 1/2}{k}
             + \Delta{x_1} \, \varepsilon_1\EvalAtV{i + 1/2}{j}{k + 1/2}
-        \nonumber \\
-        &\nquad[4]
             - \Delta{x_2} \, \varepsilon_2\EvalAtV{i + 1/2}{j + 1/2}{k}
             - \Delta{x_1} \, \varepsilon_1\EvalAtV{i + 1/2}{j}{k - 1/2}
         \Bigg)
@@ -235,8 +233,6 @@ We then reconstruct these face-centred velocities at cell edges, reconstructing 
     \bar{\mVector{u}}_{\cbrac{0,1}}^{[Q_\mathrm{II}]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         &= \frac{1}{2} \Bigg(
             \mVector{u}_{\cbrac{0,1}}^{[Q_\mathrm{II}: x_0 x_1]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
-        \nonumber \\
-        &\nquad[4]
             + \mVector{u}_{\cbrac{0,1}}^{[Q_\mathrm{II}: x_1 x_0]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         \Bigg)
     , \label{eqn:emf:fs18-average}
@@ -286,8 +282,6 @@ As in the \citetalias{Felker18a} method, we have two estimates for each of the f
     \varepsilon_{2}^{[Q_\mathrm{II}]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         &= \frac{1}{2}\Bigg(
             \varepsilon_{2}^{[Q_\mathrm{II}: x_0 x_1]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
-        \nonumber \\
-        &\nquad[4]
             + \varepsilon_{2}^{[Q_\mathrm{II}: x_1 x_0]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         \Bigg)
     , \label{eqn:emf:b25a-average}
@@ -344,8 +338,6 @@ Our first scheme, following the \citet[hereafter \citetalias{Londrillo04a}]{Lond
         }{
             \rbrac{\alpha_0^{[+]}+\alpha_0^{[-]}} \rbrac{\alpha_1^{[+]}+\alpha_1^{[-]}}
         }
-        \nonumber \\
-        &\nquad[1]
             + \frac{
                 \alpha_0^{[+]}\alpha_1^{[-]} \varepsilon_2^{[LT]}
                 + \alpha_0^{[-]}\alpha_1^{[-]} \varepsilon_2^{[RT]}
@@ -355,8 +347,6 @@ Our first scheme, following the \citet[hereafter \citetalias{Londrillo04a}]{Lond
         \nonumber \\
         &\nquad[1]
             - \frac{\alpha_1^{[+]}\alpha_1^{[-]}}{\alpha_1^{[+]}+\alpha_1^{[-]}} \rbrac{b_0^{[T]} - b_0^{[B]}}
-        \nonumber \\
-        &\nquad[1]
             + \frac{\alpha_0^{[+]}\alpha_0^{[-]}}{\alpha_0^{[+]}+\alpha_0^{[-]}} \rbrac{b_1^{[R]} - b_1^{[L]}}
     , \label{eqn:emf:ld04}
 \end{align}
@@ -397,7 +387,7 @@ The staggered mesh places each partial derivative exactly at the edge, so a cent
                 b_1\EvalAtV{i + 1}{j + 1/2}{k}
                 - b_1\EvalAtV{i}{j + 1/2}{k}
             } \nonumber \\
-        &\nquad[1]
+        &\nquad[3]
             - \frac{1}{\Delta{x_1}} \rbrac{
                 b_0\EvalAtV{i + 1/2}{j + 1}{k}
                 - b_0\EvalAtV{i + 1/2}{j}{k}
@@ -452,8 +442,8 @@ At the start of each time step (see the first, pink box in \cref{fig:schematic:f
 
 For the first RK stage (see the first set of grouped steps in \cref{fig:schematic:flowchart}), we compute a set of high-order, low-dissipation fluxes and EMFs as described in \sref{sec:methods:flux} and \sref{sec:methods:emf}; this calculation is identical to the one used to compute $\mVector{F}_\mathrm{FO}^{[n]}$ and $\mVector{\varepsilon}_\mathrm{FO}^{[n]}$ above, except that we use a higher-order reconstruction scheme (PLM, PPM, or PPM-EP as chosen by the user) and the HLLD Riemann solver, rather than PC reconstruction coupled with the LLF Riemann solver; we denote the resulting fluxes and EMFs as $\mVector{F}_\mathrm{HO}^{[n]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{HO}^{[n]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$. From a generic set of fluxes and EMFs at time step $[m]$, we define the update increment for the conserved cell-centred quantities,
 \begin{align}
-    &D^{[m]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
-        = \frac{\Delta t}{\Delta{x_0}\, \Delta{x_1}\, \Delta{x_2}} \Bigg(
+    D^{[m]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
+        &= \frac{\Delta t}{\Delta{x_0}\, \Delta{x_1}\, \Delta{x_2}} \Bigg(
         \nonumber \\
         &\nquad[1]
             \, \Delta{x_1} \, \Delta{x_2} \rbrac{
@@ -479,12 +469,10 @@ and, analogously, the update increment for the face-centred magnetic fields from
 \begin{align}
     &D^{[m]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
         = \frac{\Delta t}{\Delta{x_1} \, \Delta{x_2}} \Bigg(
-        \nonumber \\
-        &\nquad[2]
             \, \Delta{x_2} \, \varepsilon_2^{[m]}\EvalAtV{i + 1/2}{j - 1/2}{k}
-            + \Delta{x_1} \, \varepsilon_1^{[m]}\EvalAtV{i + 1/2}{j}{k + 1/2}
         \nonumber \\
         &\nquad[2]
+            + \Delta{x_1} \, \varepsilon_1^{[m]}\EvalAtV{i + 1/2}{j}{k + 1/2}
             - \Delta{x_2} \, \varepsilon_2^{[m]}\EvalAtV{i + 1/2}{j + 1/2}{k}
             - \Delta{x_1} \, \varepsilon_1^{[m]}\EvalAtV{i + 1/2}{j}{k - 1/2}
     \Bigg)
@@ -521,14 +509,14 @@ For the second RK stage (see the second set of grouped steps in \cref{fig:schema
 \end{align}
 and similarly for the face-centred magnetic fields,
 \begin{align}
+    \scalebox{0.925}{$\displaystyle
     b_0^{[n + 1]}\EvalAtV{i + 1/2}{j}{k}
-        &= b_0^{[n]}\EvalAtV{i + 1/2}{j}{k}
+        = b_0^{[n]}\EvalAtV{i + 1/2}{j}{k}
             + \frac{1}{2}\Bigg(
-        \nonumber \\
-        &D^{[n]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
+            D^{[n]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
             + D^{[n + 1/2]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
         \Bigg)
-    , \label{eqn:rk2:update}
+    $}, \label{eqn:rk2:update}
 \end{align}
 
 We again check for physically invalid states $\mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtH{i}{j}{k}$ in any cells; if an invalid state is found, we replace the intermediate-time, $[n + 1/2]$, fluxes and EMFs on that cell's faces and edges with their cached FO equivalents, $\mVector{F}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, and recompute $\mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtH{i}{j}{k}$ and $b_0^{[n + 1]}\EvalAtH{i + 1/2}{j}{k}$ in both the flagged cell and every cell sharing a face with it, using the replaced fluxes.
@@ -622,13 +610,11 @@ This wave shares the same grid-aligned geometry as the linearly-polarised Alfv\'
 
 Unlike both Alfv\'en waves, this wave follows from $\rho$ and $p$ both being perturbed alongside $\mVector{u}$ and $\mVector{b}$:
 \begin{align}
-    &\mVector{S}_\mathrm{c}^{[\delta\mathrm{fm}]}
+    \scalebox{0.925}{$\displaystyle
+    \mVector{S}_\mathrm{c}^{[\delta\mathrm{fm}]}
         = \delta_\mathrm{lin} \cos\sbrac{
                 \omega t - \mVector{k}\cdot\mVector{x}
             }
-        \nonumber \\
-        &\nquad[1]
-        \scalebox{0.925}{$\displaystyle
             \begin{Bmatrix}
                 \phi_1 \rho_\mathrm{bg} \\
                 c_\mathrm{fm} (
@@ -642,8 +628,7 @@ Unlike both Alfv\'en waves, this wave follows from $\rho$ and $p$ both being per
                         + \rho_\mathrm{bg} c_\mathrm{fm}^2 \rbrac{\phi_1^2 + \phi_2^2}
                     }
         \end{Bmatrix}
-        $}
-    ,
+    $},
 \end{align}
 with $\mVectorUnit{n}_\perp$ a unit vector orthogonal to $\mVectorUnit{n}_{k}$, lying in the plane formed by $\mVectorUnit{n}_{k}$ and $\mVectorUnit{n}_\mathrm{bg}$, and
 \begin{align}
@@ -671,13 +656,11 @@ For this test we use $\mVectorUnit{n}_\mathrm{bg} = \{0,1,0\}$ and $\mVectorUnit
 
 Like the fast magnetosonic wave, this wave follows from the same combined magnetic and gas pressure restoring force, perturbing $\rho$ and $p$ alongside $\mVector{u}$ and $\mVector{b}$:
 \begin{align}
-    &\mVector{S}_\mathrm{c}^{[\delta\mathrm{sm}]}
+    \scalebox{0.925}{$\displaystyle
+    \mVector{S}_\mathrm{c}^{[\delta\mathrm{sm}]}
         = \delta_\mathrm{lin} \cos\sbrac{
                 \omega t - \mVector{k}\cdot\mVector{x}
             }
-        \nonumber \\
-        &\nquad[1]
-        \scalebox{0.925}{$\displaystyle
             \begin{Bmatrix}
                 \phi_1 \rho_\mathrm{bg} \\
                 c_\mathrm{sm} (
@@ -692,8 +675,7 @@ Like the fast magnetosonic wave, this wave follows from the same combined magnet
                             + \rho_\mathrm{bg} c_\mathrm{sm}^2 (\phi_1^2 + \phi_2^2)
                         }
             \end{Bmatrix}
-        $}
-    ,
+    $} ,
 \end{align}
 with $\mVectorUnit{n}_\perp$ as defined for the fast magnetosonic wave,
 \begin{align}
@@ -1210,7 +1192,7 @@ We validate our recommended scheme's ability to resolve tearing-mediated reconne
 
 \begin{sidewaysfigure}
     \centering
-    \includegraphics[width=\textheight]{figures/quokka-mhd/results/orszag-tang-structure-zoomins.png}
+    \includegraphics[width=0.8\textheight]{figures/quokka-mhd/results/orszag-tang-structure-zoomins.png}
     \caption{Current density magnitude, $\log_{10}\rbrac{\Delta x\, |\nabla\times\mVector{b}|}$, for the Orszag-Tang vortex (\sref{sec:scheme-comparison:orszag-tang:setup}) at $8192^2$ and $t=0.85$, run with our recommended scheme (Q26 compute, \citetalias{Balsara25b} averaging, and PPM-EP reconstruction). White boxes on the full-domain panel (left) mark the two regions showing zoomed insets (right).}
     \label{fig:orszag-tang:zoomins}
 \end{sidewaysfigure}
