@@ -1,8 +1,6 @@
-%% cleveref must load after hyperref (loaded in header/packages/hyperlinks); used by the Quokka MHD chapter for \cref/\Cref
-\usepackage{cleveref}
+\usepackage{cleveref} % must load after hyperlinks
 
-%% MNRAS house style: spell out "Equation"/"Figure" in full, capitalised,
-%% rather than cleveref's default abbreviations ("eq."/"fig.")
+%% MNRAS style: spell out "Equation"/"Figure" instead of cleveref's "eq."/"fig."
 \crefname{equation}{Equation}{Equations}
 \Crefname{equation}{Equation}{Equations}
 \crefname{figure}{Figure}{Figures}

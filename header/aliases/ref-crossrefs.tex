@@ -1,9 +1,4 @@
-%% cross-referencing used by the Quokka MHD chapter: equations, figures, and
-%% tables use \cref{}; sections use \sref{}; appendix sections use \aref{}
-%% (\cref/\autoref cannot distinguish a section from an appendix section,
-%% since both share the same underlying section counter). \autoref{} (with
-%% \itemautorefname below) is retained only for algorithm-step labels inside
-%% enumerate environments, which cleveref does not handle robustly.
+%% sections use \sref{}; appendix sections use \aref{} (cref can't tell them apart: same counter)
 \def\itemautorefname{Step}
 \newcommand{\sref}[1]{Section~\ref{#1}}
 \newcommand{\aref}[1]{\hyperref[#1]{Appendix~\ref{#1}}}
