@@ -66,9 +66,11 @@ that describe the conservative evolution of a single-species, electrically neutr
             \nabla\otimes\mVector{u} + (\nabla\otimes\mVector{u})^\mathsf{T}
             - \frac{2}{3}(\nabla\cdot\mVector{u}) \mTensor{I}
         }
-    ,
+    , \label{eqn:fluid:viscosity}
 \end{align}
 with kinematic viscosity $\nu$.
+
+This isotropic closure assumes collisions are frequent enough to erase any directional bias in local velocities before it can imprint on the stress tensor. Once the plasma is magnetised and only weakly collisional, this assumption breaks down: ions gyrate around the magnetic field many times between collisions, $\omega_\mathrm{ci}\tau_\mathrm{i} \gg 1$ (the same Lorentz-force gyration responsible for synchrotron emission; \S\ref{sec:how-we-see:synchrotron}), and viscous stresses become anisotropic relative to the field, with those parallel to it greatly exceeding those perpendicular \citep[Braginskii viscosity;][]{braginskii1965transport}. \citet{StOnge2020_weakly_collisional_dynamo} explore dynamo action directly in this weakly collisional regime. This matters for the hydrodynamic Reynolds numbers shown later in \autoref{fig:plasma-regimes}, which assume the isotropic limit: this holds for most of the environments plotted, but likely not for the intracluster medium, which is hot and dilute enough that $\omega_\mathrm{ci}\tau_\mathrm{i} \gg 1$. Its true (direction-dependent) Reynolds number could therefore be substantially higher than the isotropic estimate suggests, though by how much remains an open question, since it depends on how turbulent motions are oriented relative to the field.
 
 \subsection{The Magnetohydrodynamic Framework}
 \label{sec:modelling:mhd}
