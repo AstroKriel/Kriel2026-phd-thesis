@@ -24,6 +24,7 @@
 
 ## compiled pdf
 *.pdf
+!figures/**/*.pdf
 
 ## table of contents
 *.toc
