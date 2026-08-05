@@ -1,0 +1,210 @@
+\begin{table}
+\centering
+\caption{Symbols used throughout our description of \quokka's MHD module.
+\label{tab:symbols}}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l p{0.55\textwidth} l l}
+\hline\hline
+Symbol
+    & Description
+    & Units
+    & Introduced in \\
+\hline
+\multicolumn{4}{l}{\textit{Domain variables}} \\
+\hline
+$[i, j, k]$
+    & Mesh indices; integers denote cell centres
+    & --
+    & \cref{eqn:state:conserved} \\
+$x_d$
+    & Directions $d \in \{0, 1, 2\}$; follow the right-hand rule
+    & $\mathrm{cm}$
+    & \cref{fig:schematic:grid} \\
+$\Delta{x_d}$
+    & Cell width along the $x_d$-direction
+    & $\mathrm{cm}$
+    & \cref{eqn:dbdt:discrete} \\
+$\Delta{x}_\mathrm{min}$
+    & Smallest cell width on a given AMR level
+    & $\mathrm{cm}$
+    & \cref{eqn:resistivity:cfl} \\
+$\mathcal{V}$
+    & Cell volume, with measure $|\mathcal{V}|$
+    & $\mathrm{cm^{3}}$
+    & \cref{eqn:godunov:integral} \\
+$\partial\mathcal{V}$
+    & Cell face, with area $|\partial\mathcal{V}|$ and area element $A$
+    & $\mathrm{cm^{2}}$
+    & \cref{eqn:godunov:integral} \\
+$\partial\mathcal{A}$
+    & Closed circuit traced by the four edges bounding a face
+    & --
+    & \cref{eqn:ct:circulation-update} \\
+$\mVectorUnit{n}$
+    & Unit vector normal to a face
+    & --
+    & \cref{eqn:godunov:integral} \\
+$\mathrm{d}\mVector{\ell}$
+    & Line element directed along a face boundary
+    & $\mathrm{cm}$
+    & \cref{eqn:ct:circulation-update} \\
+\hline
+\multicolumn{4}{l}{\textit{Time stepping}} \\
+\hline
+$t$
+    & Time value
+    & $\mathrm{s}$
+    & \cref{eqn:godunov:conservation-law} \\
+$\Delta t$
+    & Time step
+    & $\mathrm{s}$
+    & \cref{eqn:resistivity:cfl} \\
+$[n]$
+    & Old time level; \eg~$[n + 1/2]$ is the intermediate time
+    & --
+    & \sref{sec:methods:time-stepping} \\
+$\mathrm{CFL}$
+    & Courant-Friedrichs-Lewy number
+    & --
+    & \cref{eqn:resistivity:cfl} \\
+HO, FO
+    & Acronyms for high-order and first-order estimates of fluxes and EMFs
+    & --
+    & \cref{fig:schematic:flowchart} \\
+\hline
+\multicolumn{4}{l}{\textit{Reconstructed-state labels}} \\
+\hline
+$S_\mathrm{I}$
+    & States either side of an $x_0$-face, $S_\mathrm{I} \in \{L, R\}$
+    & --
+    & \cref{fig:schematic:b-common} \\
+$S_\mathrm{II}$
+    & States either side of an $x_1$-face, $S_\mathrm{II} \in \{B, T\}$
+    & --
+    & \cref{fig:schematic:b-common} \\
+$Q_\mathrm{I}$
+    & Four sides at an edge, $Q_\mathrm{I} \in \{L, T, R, B\}$
+    & --
+    & \cref{fig:schematic:q26} \\
+$Q_\mathrm{II}$
+    & Four corners at an edge, $Q_\mathrm{II} \in \{LT, RT, RB, LB\}$
+    & --
+    & \cref{fig:schematic:fs18} \\
+$[x_0 x_1]$
+    & Sequence of 1D reconstructions; $[x_1 x_0]$ is the reverse
+    & --
+    & \cref{eqn:emf:fs18-average} \\
+\hline
+\multicolumn{4}{l}{\textit{State vectors, fluxes, and operators}} \\
+\hline
+$\mVector{S}_\mathrm{c}$
+    & Vector of conserved quantities
+    & mixed
+    & \cref{eqn:state:conserved} \\
+$\mVector{S}_\mathrm{p}$
+    & Vector of primitive quantities
+    & mixed
+    & \cref{eqn:state:primitive} \\
+$\mVector{F}$
+    & Flux of the conserved quantities across a face
+    & mixed
+    & \cref{eqn:godunov:conservation-law} \\
+$\mVector{G}$
+    & Explicit sources and sinks of the conserved quantities
+    & mixed
+    & \cref{eqn:godunov:conservation-law} \\
+$\mTensor{I}$
+    & Identity tensor
+    & --
+    & \cref{eqn:mhd:conservation-laws} \\
+$\otimes$
+    & Tensor (outer) product, $\mVector{u}\otimes\mVector{b} \equiv u_i b_j$
+    & --
+    & \cref{eqn:mhd:conservation-laws} \\
+$D^{[m]}$
+    & Update increment evaluated at time step $[m]$
+    & set by argument
+    & \cref{eqn:rk:increment-state} \\
+$\langle\,\cdot\,\rangle_\mathcal{V}$
+    & Volume-average over a cell
+    & set by argument
+    & \cref{eqn:godunov:integral} \\
+$\langle\,\cdot\,\rangle_{\partial\mathcal{V}}$
+    & Average over a cell face
+    & set by argument
+    & \cref{eqn:godunov:integral} \\
+\hline
+\multicolumn{4}{l}{\textit{Field variables}} \\
+\hline
+$\rho$
+    & Mass density
+    & $\mathrm{g\,cm^{-3}}$
+    & \cref{eqn:state:conserved} \\
+$\mVector{u}$
+    & Fluid velocity
+    & $\mathrm{cm\,s^{-1}}$
+    & \cref{eqn:mhd:conservation-laws} \\
+$p$
+    & Gas (thermal) pressure
+    & $\mathrm{erg\,cm^{-3}}$
+    & \cref{eqn:state:primitive} \\
+$\mVector{b}$
+    & Magnetic field
+    & $\mathrm{G}/\sqrt{4\pi}$
+    & \cref{eqn:mhd:conservation-laws} \\
+$e_\mathrm{int}$
+    & Internal energy density
+    & $\mathrm{erg\,cm^{-3}}$
+    & \cref{eqn:mhd:conservation-laws} \\
+$e_\mathrm{tot}$
+    & Total energy density, $e_\mathrm{int} + (\rho u^2 + b^2)/2$
+    & $\mathrm{erg\,cm^{-3}}$
+    & \cref{eqn:mhd:conservation-laws} \\
+$\mVector{\varepsilon}$
+    & Electromotive force (EMF), $\mVector{u}\times\mVector{b}$
+    & $\mathrm{G\,cm\,s^{-1}}/\sqrt{4\pi}$
+    & \cref{eqn:induction:continuous} \\
+$\mVector{j}$
+    & Current density, $\nabla\times\mVector{b}$
+    & $\mathrm{G\,cm^{-1}}/\sqrt{4\pi}$
+    & \cref{eqn:resistivity:ohms-law} \\
+$\eta$
+    & Ohmic resistivity, constant in space and time
+    & $\mathrm{cm^{2}\,s^{-1}}$
+    & \cref{eqn:resistivity:ohms-law} \\
+$\gamma$
+    & Adiabatic index
+    & --
+    & \sref{sec:scheme-comparison:waves} \\
+$\mathcal{M}$
+    & Sonic Mach number, $u / c_\mathrm{s}$
+    & --
+    & \sref{sec:intro:goals} \\
+\hline
+\multicolumn{4}{l}{\textit{Wave speeds}} \\
+\hline
+$c_\mathrm{s}$
+    & Adiabatic sound speed, $\sqrt{\gamma p / \rho}$
+    & $\mathrm{cm\,s^{-1}}$
+    & \sref{sec:scheme-comparison:waves:fast} \\
+$c_\mathrm{A}$
+    & Alfv\'en speed, $b / \sqrt{\rho}$
+    & $\mathrm{cm\,s^{-1}}$
+    & \sref{sec:scheme-comparison:waves:alfven-linear} \\
+$c_\mathrm{fm}$
+    & Fast magnetosonic speed
+    & $\mathrm{cm\,s^{-1}}$
+    & \cref{eqn:waves:fast-speed} \\
+$c_\mathrm{sm}$
+    & Slow magnetosonic speed
+    & $\mathrm{cm\,s^{-1}}$
+    & \cref{eqn:waves:slow-speed} \\
+$\alpha_{d}^{[\pm]}$
+    & Non-negative bounding wavespeeds on the $x_d$-face
+    & $\mathrm{cm\,s^{-1}}$
+    & \cref{eqn:emf:alpha-pm} \\
+\hline
+\hline
+\end{tabular}
+\end{table}

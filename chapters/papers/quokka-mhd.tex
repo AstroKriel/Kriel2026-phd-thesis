@@ -12,7 +12,7 @@ We implement a second-order accurate constrained transport (CT) magnetohydrodyna
 
 \section{Chapter Introduction}
 
-\quokka~is a new, open-source, GPU-accelerated radiation-hydrodynamics code aimed at modelling radiating, highly compressible flows across a wide range of scales \citep[hereafter \citetalias{Wibking22a}]{Wibking22a}. In this paper we extend \quokka~to include a magnetohydrodynamics (MHD) module, and in the process test a broad combination of Riemann solvers, constrained-transport (CT) schemes, and error-correction strategies in order to identify ones that offer a good combination of accuracy and performance in these complex flow regimes. This comparison of available approaches in the literature will not only inform our design choices for implementing MHD into \quokka, but we anticipate that it will also be directly useful to others implementing MHD in similar GPU-oriented codes. Moreover, we introduce a new EMF compute scheme that is more efficient on GPU with comparable accuracy; paired with our recommended EMF averaging scheme, we also find it to be more stable than the alternatives we test in reconnection-dominated flows. To this end, the remainder of this Introduction will be dedicated to first situating \quokka~within the broader landscape of astrophysical simulation codes, before we turn to the numerical challenges posed by highly compressible MHD flows, which \quokka~aims to simulate.
+\quokka~is a new, open-source, GPU-accelerated radiation-hydrodynamics code aimed at modelling radiating, highly compressible flows across a wide range of scales \citep[hereafter \citetalias{Wibking22a}]{Wibking22a}. In this chapter we extend \quokka~to include a magnetohydrodynamics (MHD) module, and in the process test a broad combination of Riemann solvers, constrained-transport (CT) schemes, and error-correction strategies in order to identify ones that offer a good combination of accuracy and performance in these complex flow regimes. This comparison of available approaches in the literature will not only inform our design choices for implementing MHD into \quokka, but we anticipate that it will also be directly useful to others implementing MHD in similar GPU-oriented codes. Moreover, we introduce a new EMF compute scheme that is more efficient on GPU with comparable accuracy; paired with our recommended EMF averaging scheme, we also find it to be more stable than the alternatives we test in reconnection-dominated flows. To this end, the remainder of this Introduction will be dedicated to first situating \quokka~within the broader landscape of astrophysical simulation codes, before we turn to the numerical challenges posed by highly compressible MHD flows, which \quokka~aims to simulate.
 
 \subsection{Why \quokka?}
 
@@ -20,7 +20,7 @@ While a number of mature grid-based codes already provide rich multiphysics capa
 
 \quokka~attempts to bridge this gap. It is a GPU-native\footnote{
     \quokka~can also be built and run on CPU-only systems.
-} radiation-hydrodynamics code built on \textsc{AMReX} \citep{Zhang19b}, designed for high-resolution AMR studies of non-relativistic, radiating, compressible flows. Recently, the codebase has grown to include a broader set of physics modules, including multi-group, non-relativistic radiation transport \citep{He24a, He24b}, complex gas-particle interactions \citep{He25a}, and subgrid models aimed at ISM, circumgalactic, and star-formation applications, which has been successfully deployed in simulations of galactic winds launched by supernovae \citep{Vijayan24a, Vijayan25a, huang2026quokka}. However, what \quokka~has lacked so far is the ability to simulate magnetised flows, so one goal of this paper is to add and validate this capability.
+} radiation-hydrodynamics code built on \textsc{AMReX} \citep{Zhang19b}, designed for high-resolution AMR studies of non-relativistic, radiating, compressible flows. Recently, the codebase has grown to include a broader set of physics modules, including multi-group, non-relativistic radiation transport \citep{He24a, He24b}, complex gas-particle interactions \citep{He25a}, and subgrid models aimed at ISM, circumgalactic, and star-formation applications, which has been successfully deployed in simulations of galactic winds launched by supernovae \citep{Vijayan24a, Vijayan25a, huang2026quokka}. However, what \quokka~has lacked so far is the ability to simulate magnetised flows, so one goal of this chapter is to add and validate this capability.
 
 \subsection{Design considerations for highly compressible MHD}
 \label{sec:intro:goals}
@@ -32,7 +32,7 @@ A common approach for satisfying these challenges is to use a Godunov finite-vol
     \mpFrac{\mVector{S}_\mathrm{c}}{t}
         + \nabla\cdot\mVector{F}\sbrac{\mVector{S}_\mathrm{c}}
         &= \mVector{G}\sbrac{\mVector{S}_\mathrm{c}}
-    , \label{eqn:conservative_form}
+    , \label{eqn:godunov:conservation-law}
 \end{align}
 where $\mVector{F}[\mVector{S}_\mathrm{c}]$ provides the fluxes of conserved quantities, and $\mVector{G}[\mVector{S}_\mathrm{c}]$ collects explicit sources and sinks (\eg gravity and radiation couplings, or momentum forcing together with the corresponding energy injection it implies). Integrating over cell volumes $\mathcal{V}$, one obtains the semi-discrete evolution equation
 \begin{align}
@@ -55,7 +55,8 @@ is the average value of $\mVector{S}_\mathrm{c}$ over a cell volume (a similar d
 Schemes in this family have proven robust at capturing strong shocks, while still able to retain high levels of accuracy in smooth flows \citep{kritsuk2011comparing}, and, because they operate directly on the conserved variables, extend straightforwardly to AMR. The main numerical choices lie in how one approximates the face-averaged fluxes, which typically involves (i) reconstructing interface states from the cell averages and (ii) solving a local Riemann problem to obtain an upwinded flux; different combinations trade off stability, accuracy, and computational cost.
 
 In ideal MHD, considering an isolated system with $\mVector{G} = 0$ (\ie no external mass, momentum, or energy sources), the conservative system can be written compactly\footnote{
-    Here, and throughout this paper, we adopt the usual rationalised-Gaussian unit system, whereby all non-magnetic quantities are expressed in CGS units, and the magnetic field $\mVector{b}$ is expressed in Gauss units divided by $\sqrt{4\pi}$.
+    Here, and throughout this chapter, we adopt the usual rationalised-Gaussian unit system, whereby all non-magnetic quantities are expressed in CGS units, and the magnetic field $\mVector{b}$ is expressed in Gauss units divided by $\sqrt{4\pi}$.
+    \label{fnote:b-units}
 } as
 \begin{align}
     \mpFrac{}{t}\begin{Bmatrix}
@@ -74,19 +75,19 @@ In ideal MHD, considering an isolated system with $\mVector{G} = 0$ (\ie no exte
                 \mVector{u}\otimes\mVector{b}
                     - \mVector{b}\otimes\mVector{u}
             \end{Bmatrix}
-    , \label{eqn:mhd_system}
+    , \label{eqn:mhd:conservation-laws}
 \end{align}
 since there are no explicit source or sink terms in ideal MHD. Here $\rho$, $\mVector{u}$, and $\mVector{b}$ are the fluid density, fluid velocity, and magnetic field, respectively, with total energy density $e_\mathrm{tot} = e_\mathrm{int} + (1/2)\rbrac{\rho u^2 + b^2}$, and internal energy $e_\mathrm{int}$; here, also, $b^2 \equiv \mVector{b}\cdot\mVector{b}$ and $\otimes$ is the tensor (or outer) product such that, for example, $\mVector{u}\otimes\mVector{b} \equiv u_i b_j$ in index notation.
 
-On the surface, this system of equations might look like a straightforward extension of the Euler system (\ie inviscid hydrodynamics), which may lead one to naively assume that evolving \cref{eqn:mhd_system} in a Godunov framework simply requires the hydro-Riemann solver be replaced with an MHD-aware Riemann solver. However, magnetised flows face a unique constraint that is not automatically satisfied by a standard Godunov scheme: the numerical method must satisfy $\nabla\cdot\mVector{b} = 0$. This is not guaranteed for a purely cell-centred flux update of $\mVector{b}$, which is a well known numerical problem to which many approaches have been attempted \citep{kritsuk2011comparing}, including the development of CT methods \citep{Evans88a}.
+On the surface, this system of equations might look like a straightforward extension of the Euler system (\ie inviscid hydrodynamics), which may lead one to naively assume that evolving \cref{eqn:mhd:conservation-laws} in a Godunov framework simply requires the hydro-Riemann solver be replaced with an MHD-aware Riemann solver. However, magnetised flows face a unique constraint that is not automatically satisfied by a standard Godunov scheme: the numerical method must satisfy $\nabla\cdot\mVector{b} = 0$. This is not guaranteed for a purely cell-centred flux update of $\mVector{b}$, which is a well known numerical problem to which many approaches have been attempted \citep{kritsuk2011comparing}, including the development of CT methods \citep{Evans88a}.
 
 In many ways CT can be viewed as a natural extension of the Godunov approach to magnetic fields, where, rather than evolving cell-averaged components of $\mVector{b}$ from face fluxes, one instead evolves face-averaged normal-components of $\mVector{b}$ from edge-centred electromotive forces (EMFs) in a way that preserves the discrete divergence by construction. This follows from the central fact that, for ideal MHD, the magnetic field evolves according to the induction equation
 \begin{align}
     \mpFrac{\mVector{b}}{t}
         &= -\nabla\times\mVector{\varepsilon}
-    , \label{eqn:induction_intro}
+    , \label{eqn:induction:continuous}
 \end{align}
-where $\mVector{\varepsilon} = -\mVector{u}\times\mVector{b}$ is the ideal EMF. Integrating the normal component of \cref{eqn:induction_intro} over a cell face $\partial\mathcal{V}$ with unit normal direction $\mVectorUnit{n}$, gives
+where $\mVector{\varepsilon} = -\mVector{u}\times\mVector{b}$ is the ideal EMF. Integrating the normal component of \cref{eqn:induction:continuous} over a cell face $\partial\mathcal{V}$ with unit normal direction $\mVectorUnit{n}$, gives
 \begin{align}
     \int_{\partial\mathcal{V}} \mpFrac{\mVector{b}}{t}\cdot\mVectorUnit{n}\, \mathrm{d} A
         &= -\int_{\partial\mathcal{V}}
@@ -108,21 +109,23 @@ while Stokes' theorem converts the surface integral of the curl, on the right-ha
         &= -\frac{1}{|\partial\mathcal{V}|}
             \oint_{\partial\mathcal{A}}
             \mVector{\varepsilon}\cdot\mathrm{d}\mVector{\ell}
-    . \label{eqn:ct_stokes_intro}
+    . \label{eqn:ct:circulation-update}
 \end{align}
-CT is then a discrete realisation of \cref{eqn:ct_stokes_intro}, in which $\mVector{b}$ is stored directly as face-averaged normal components, and EMFs as edge-averaged components tangent to the boundary edge. From this, the magnetic update is obtained by approximating the line integral (in \cref{eqn:ct_stokes_intro}) as a sum of the EMF components at the edges bounding the face. With this staggering, each edge EMF contributes to exactly two neighbouring face updates, with opposite sign, so the discrete divergence (defined by the oriented sum of face-averaged fluxes over the cell boundary) is preserved by construction; thus the update leaves the value of $\nabla\cdot\mVector{b}$ unchanged (to machine precision), and if this quantity is initially zero it will remain so thereafter.
+CT is then a discrete realisation of \cref{eqn:ct:circulation-update}, in which $\mVector{b}$ is stored directly as face-averaged normal components, and EMFs as edge-averaged components tangent to the boundary edge. From this, the magnetic update is obtained by approximating the line integral (in \cref{eqn:ct:circulation-update}) as a sum of the EMF components at the edges bounding the face. With this staggering, each edge EMF contributes to exactly two neighbouring face updates, with opposite sign, so the discrete divergence (defined by the oriented sum of face-averaged fluxes over the cell boundary) is preserved by construction; thus the update leaves the value of $\nabla\cdot\mVector{b}$ unchanged (to machine precision), and if this quantity is initially zero it will remain so thereafter.
 
 With this context, it then follows that enabling ideal MHD in \quokka~amounts to extending its finite-volume flux update in two coupled ways. First, we replace the purely hydrodynamic flux function with an MHD-aware Riemann solver, so we can compute upwinded face-centred fluxes from reconstructed left and right interface states. Second, we compute the magnetic update using CT. In the sections that follow we describe our choice of MHD-aware Riemann solver and suite of CT schemes.
 
-\subsection{Outline of this paper}
+\subsection{Outline of this chapter}
 
-The remainder of this paper is organised as follows. In \sref{sec:method} we present the MHD module added to \quokka, describing the set of (Riemann and CT) solvers, reconstruction schemes, and our flux correction strategy. In \sref{sec:scheme-comparisons} we compare the accuracy and performance of different schemes, before recommending our preferred scheme combination for \quokka. In \sref{sec:stress-tests} we demonstrate the correctness, robustness, and broader capability of our recommended scheme across a more comprehensive set of MHD stress tests, and then finally summarise our findings and discuss future extensions of MHD for \quokka~in \sref{sec:conclusions}. Because, in what follows, we will need to track quantities with many different types of indices (indicating grid position, time, direction, \etc), we will use notation as described in End Matter (\sref{sec:notation}).
+The remainder of this chapter is organised as follows. In \sref{sec:method} we present the MHD module added to \quokka, describing the set of (Riemann and CT) solvers, reconstruction schemes, and our flux correction strategy. In \sref{sec:scheme-comparisons} we compare the accuracy and performance of different schemes, before recommending our preferred scheme combination for \quokka. In \sref{sec:stress-tests} we demonstrate the correctness, robustness, and broader capability of our recommended scheme across a more comprehensive set of MHD stress tests, and then finally summarise our findings and discuss future extensions of MHD for \quokka~in \sref{sec:conclusions}. Because, in what follows, we will need to track quantities with many different types of indices (indicating grid position, time, direction, \etc), we will use notation as described in End Matter (\sref{sec:notation}).
 
 
 \section{Numerical implementation}
 \label{sec:method}
 
-Here we introduce the different parts of our MHD module. We first describe the mesh we use to discretise the equations in \sref{sec:methods:mesh}. We then describe the method we use to compute the fluxes of cell-centred variables in \sref{sec:methods:flux}, and to compute EMFs for the face-centred magnetic fields in \sref{sec:methods:emf}. We explain how we chain these calculations together within our overall time-stepping strategy, including our implementation of flux correction in \sref{sec:methods:time-stepping}, and conclude in \sref{sec:methods:amr} with a discussion of how the module was extended to AMR.
+Here we introduce the different parts of our MHD module. We first describe the mesh we use to discretise the equations in \sref{sec:methods:mesh}. We then describe the method we use to compute the fluxes of cell-centred variables in \sref{sec:methods:flux}, and to compute EMFs for the face-centred magnetic fields in \sref{sec:methods:emf}. We explain how we chain these calculations together within our overall time-stepping strategy, including our implementation of flux correction in \sref{sec:methods:time-stepping}, and conclude in \sref{sec:methods:amr} with a discussion of how the module was extended to AMR. Because the description that follows involves a large number of quantities, we collect all the symbols we use, along with their meanings and units, in \cref{tab:symbols}; the notational conventions governing indices, brackets, and superscripts are separately discussed in \sref{sec:notation}.
+
+\input{tables/quokka-mhd/symbols}
 
 \subsection{Mesh}
 \label{sec:methods:mesh}
@@ -135,7 +138,7 @@ Here we introduce the different parts of our MHD module. We first describe the m
 \end{figure*}
 
 Our implementation uses the staggered mesh scheme first introduced for astrophysical MHD by \citet{Evans88a}, which had precursors in other MHD fields \citep[\eg][]{Yee66a, Brecht81a}; today, this approach is standard in essentially all 3D CT schemes \citep[\eg][]{Fromang06a, Gardiner08a, Li12a}. As illustrated in \cref{fig:schematic:grid}, we store all the conserved quantities, except for magnetic fields, at cell centres,\footnote{
-    In addition to the MHD variables described in \cref{defn:state-vector}, \quokka~also supports a dual-energy formalism, in which the internal energy is evolved alongside the total energy, and (optionally) passive scalars. These quantities extend the conservative state vector, $\mVector{S}_\mathrm{c}$, trivially with extra cell-centred quantities. However, for simplicity in this paper, we restrict the discussion in this paper to the minimal set of conserved variables relevant for MHD.
+    In addition to the MHD variables described in \cref{eqn:state:conserved}, \quokka~also supports a dual-energy formalism, in which the internal energy is evolved alongside the total energy, and (optionally) passive scalars. These quantities extend the conservative state vector, $\mVector{S}_\mathrm{c}$, trivially with extra cell-centred quantities. However, for simplicity in this chapter, we restrict the discussion in this chapter to the minimal set of conserved variables relevant for MHD.
     \label{fnote:dual-energy}
 }
 and thus our vector of conserved cell-centred quantities is
@@ -146,7 +149,7 @@ and thus our vector of conserved cell-centred quantities is
             \rho\EvalAtH{i}{j}{k} \mVector{u}\EvalAtH{i}{j}{k} \\
             e_\mathrm{tot}\EvalAtH{i}{j}{k}
         \end{Bmatrix}
-    , \label{defn:state-vector}
+    , \label{eqn:state:conserved}
 \end{align}
 where we use integer indices $i$, $j$, and $k$ to denote cell-centred quantities. Each of these quantities should be understood as an average over cell $\EvalAtH{i}{j}{k}$, but for compactness we will omit the angle bracket notation used in \cref{eqn:godunov:integral} from this point forward. We store the magnetic field on cell faces, with the component normal to a face stored at the face centre (see \cref{fig:schematic:grid}). Thus $b_0$ is indexed as $\,\EvalAtH{i + 1/2}{j}{k}$, $b_1$ as $\,\EvalAtH{i}{j + 1/2}{k}$, and $b_2$ as $\,\EvalAtH{i}{j}{k + 1/2}$. In general, a half-integer index together with two integer indices corresponds with a face-centred quantity that has been face-averaged. We also use edge-centred quantities, which are associated with two half-integer indices, for example $\EvalAtH{i + 1/2}{j + 1/2}{k}$, which indicates an edge-averaged value stored on the $x_2$-edge.
 
@@ -164,7 +167,7 @@ The reconstruction part of our scheme closely follows the approach \quokka~alrea
             p\EvalAtH{i}{j}{k} \\
             \mVector{b}\EvalAtH{i}{j}{k}
         \end{Bmatrix}
-    ,
+    , \label{eqn:state:primitive}
 \end{align}
 where $p$ is the gas pressure. We compute the magnetic field in this step by simply averaging the adjacent face-centred data, \ie we take
 \begin{align}
@@ -186,14 +189,16 @@ In addition to the HLLD Riemann solver, we also implement a Local Lax-Friedrichs
 \subsection{EMF calculation}
 \label{sec:methods:emf}
 
-The second step in advancing the MHD equations in time, which occurs after the flux calculation described in the previous section, is calculation of the EMFs required to update the magnetic field. As with the flux calculation, this involves two steps: first reconstructing either the EMFs or the quantities required to compute them at the cell edges where the EMFs are needed, and then combining the results of this reconstruction into a single EMF that can be used to update the magnetic field. In what follows, we will for notational simplicity specialise to the case of an update in the $x_0$ direction, for which the face has edges oriented in the $x_1$- and $x_2$-directions; the corresponding procedures for other directions can be obtained by cyclic permutation of the indices. Thus our goal for cell $\EvalAtH{i}{j}{k}$ is to arrive at estimates for the four average EMFs on the edges surrounding face $\EvalAtH{i + 1/2}{j}{k}$, so that we can write the semi-discrete evolution equation (\cref{eqn:ct_stokes_intro}) as
+The second step in advancing the MHD equations in time, which occurs after the flux calculation described in the previous section, is calculation of the EMFs required to update the magnetic field. As with the flux calculation, this involves two steps: first reconstructing either the EMFs or the quantities required to compute them at the cell edges where the EMFs are needed, and then combining the results of this reconstruction into a single EMF that can be used to update the magnetic field. In what follows, we will for notational simplicity specialise to the case of an update in the $x_0$ direction, for which the face has edges oriented in the $x_1$- and $x_2$-directions; the corresponding procedures for other directions can be obtained by cyclic permutation of the indices. Thus our goal for cell $\EvalAtH{i}{j}{k}$ is to arrive at estimates for the four average EMFs on the edges surrounding face $\EvalAtH{i + 1/2}{j}{k}$, so that we can write the semi-discrete evolution equation (\cref{eqn:ct:circulation-update}) as
 \begin{align}
     &\mpFrac{b_0}{t}\EvalAtV{i + 1/2}{j}{k}
         =  \frac{1}{\Delta{x_1}\, \Delta{x_2}} \Bigg(
-            \Delta{x_2} \, \varepsilon_2\EvalAtV{i + 1/2}{j - 1/2}{k}
         \nonumber \\
         &\nquad[3]
+            \Delta{x_2} \, \varepsilon_2\EvalAtV{i + 1/2}{j - 1/2}{k}
             + \Delta{x_1} \, \varepsilon_1\EvalAtV{i + 1/2}{j}{k + 1/2}
+        \nonumber \\
+        &\nquad[4]
             - \Delta{x_2} \, \varepsilon_2\EvalAtV{i + 1/2}{j + 1/2}{k}
             - \Delta{x_1} \, \varepsilon_1\EvalAtV{i + 1/2}{j}{k - 1/2}
         \Bigg)
@@ -233,6 +238,8 @@ We then reconstruct these face-centred velocities at cell edges, reconstructing 
     \bar{\mVector{u}}_{\cbrac{0,1}}^{[Q_\mathrm{II}]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         &= \frac{1}{2} \Bigg(
             \mVector{u}_{\cbrac{0,1}}^{[Q_\mathrm{II}: x_0 x_1]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
+        \nonumber \\
+        &\nquad[4]
             + \mVector{u}_{\cbrac{0,1}}^{[Q_\mathrm{II}: x_1 x_0]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         \Bigg)
     , \label{eqn:emf:fs18-average}
@@ -282,6 +289,8 @@ As in the \citetalias{Felker18a} method, we have two estimates for each of the f
     \varepsilon_{2}^{[Q_\mathrm{II}]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         &= \frac{1}{2}\Bigg(
             \varepsilon_{2}^{[Q_\mathrm{II}: x_0 x_1]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
+        \nonumber \\
+        &\nquad[4]
             + \varepsilon_{2}^{[Q_\mathrm{II}: x_1 x_0]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         \Bigg)
     , \label{eqn:emf:b25a-average}
@@ -298,14 +307,23 @@ Note that the \citetalias{Balsara25a} compute scheme does not directly make use 
 \end{figure}
 
 We refer to the final scheme that we consider as the Quokka 2026 (Q26) scheme. Illustrated in \cref{fig:schematic:q26}, it is a modified version of an approach inspired by \citet{Mignone21a}. As with the \citetalias{Felker18a} method, we independently reconstruct the velocity and magnetic field at the cell edge, and combine them there to compute the EMF, but with an important difference: rather than reconstructing velocities at the face from the cell centre and then at the edge from the face, we instead begin from face velocities obtained directly from the flux calculation (\sref{sec:methods:flux}), and therefore only require a single reconstruction to reach cell edges.\footnote{
-    We originally attempted to compute the face velocity by dividing the mass flux returned by the Riemann solver by the upwind-state density, but found that this was unstable for the complex magnetic field geometries resolved in high-resolution, turbulent systems such as the Orszag-Tang vortex and the current sheet tested later in this paper.
+    We originally attempted to compute the face velocity by dividing the mass flux returned by the Riemann solver by the upwind-state density, but found that this was unstable for the complex magnetic field geometries resolved in high-resolution, turbulent systems such as the Orszag-Tang vortex and the current sheet tested later in this chapter.
 } We estimate this face-normal velocity, which we denote $u_{0}^{[*]}\EvalAtH{i \pm 1/2}{j}{k}$ on the $x_0$-faces (and similarly $u_1^{[*]}\EvalAtH{i}{j \pm 1/2}{k}$ on the $x_1$-faces, \etc), via a fast-magnetosonic-wavespeed-weighted average of the reconstructed left and right normal-velocity states at the face,
 \begin{align}
     u_{0}^{[*]}
         = \frac{\alpha_0^{[+]} u_{0}^{[L]} + \alpha_0^{[-]} u_{0}^{[R]}}{\alpha_0^{[+]} + \alpha_0^{[-]}}
     , \label{eqn:emf:q26-facevel}
 \end{align}
-where every quantity in this equation is evaluated at the shared face $\EvalAtH{i + 1/2}{j}{k}$; $\alpha_0^{[\pm]}$ are the maximum and minimum fast-magnetosonic wavespeeds at the $x_0$-face (computed as part of the Riemann solve; \sref{sec:methods:flux}), the same wavespeeds we use for EMF averaging in \sref{sec:methods:emf:averaging}, and $u_0^{[L]}$ and $u_0^{[R]}$ are the reconstructed left and right states of the normal velocity component. We compute $\alpha_{\cbrac{0,1}}^{[\pm]}$ following the procedure outlined in Appendix A of \citetalias{Felker18a}. The wavespeed averaging we use here is the same as that proposed in equation 29 of \citet{Mignone21a}, but here we apply it to the normal component of the velocity rather than to the transverse components as in their work.
+where every quantity in this equation is evaluated at the shared face $\EvalAtH{i + 1/2}{j}{k}$, and $u_0^{[L]}$ and $u_0^{[R]}$ are the reconstructed left and right states of the normal velocity component. Following \citet{Miyoshi05a} (their eqn. 67), we estimate the non-negative bounding wavespeeds of the Riemann fan at the $x_0$-face as
+\begin{align}
+    \alpha_0^{[+]}
+        &= \max\sbrac{0,\ \max\sbrac{u_0^{[L]}, u_0^{[R]}} + \max\sbrac{c_\mathrm{fm}^{[L]}, c_\mathrm{fm}^{[R]}}}
+    \\
+    \alpha_0^{[-]}
+        &= \max\sbrac{0,\ \max\sbrac{c_\mathrm{fm}^{[L]}, c_\mathrm{fm}^{[R]}} - \min\sbrac{u_0^{[L]}, u_0^{[R]}}}
+    , \label{eqn:emf:alpha-pm}
+\end{align}
+where $c_\mathrm{fm}^{[L]}$ and $c_\mathrm{fm}^{[R]}$ are the fast-magnetosonic speed (\sref{sec:scheme-comparison:waves:fast}) evaluated at the reconstructed left and right states; we use these same face-level quantities, maximised over the faces adjacent to each edge (\cref{eqn:emf:alpha-edge}), for EMF averaging in \sref{sec:methods:emf:averaging}. The wavespeed averaging we use here is the same as that proposed in equation 29 of \citet{Mignone21a}, but here we apply it to the normal component of the velocity rather than to the transverse components as in their work.
 
 Once we have computed the face velocities $u_0^{[*]}$ and $u_1^{[*]}$, we reconstruct $u_{0}^{[*]}$ in the $x_1$-direction to yield $u_{0}^{[*;S_\mathrm{II}]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, and reconstruct $u_{1}^{[*]}$ in the $x_0$-direction to yield $u_{1}^{[*;S_\mathrm{I}]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, where, as previously, $L$, $R$, $T$, and $B$ indicate states on the left, right, top, and bottom of the edge. For the $x_2$ edges, we can then compute four estimates of the EMF as
 \begin{align}
@@ -327,7 +345,16 @@ In comparison to the \citetalias{Felker18a} and \citetalias{Balsara25a} schemes,
 
 Each of the EMF compute schemes described in \sref{sec:methods:emf:compute} yields four quadrant-estimates of the EMF around each corner of the cell edge; for the $x_2$-edges, these are denoted $\varepsilon_{2}^{[Q_\mathrm{II}]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$. The final step is to average these together to yield a single estimate of the EMF, $\varepsilon_{2}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, at the edge. Below we describe the two schemes we consider for doing so.
 
-Both schemes also require the magnetic fields reconstructed at the cell edges, $b_{0}^{[S_\mathrm{II}]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$ and $b_{1}^{[S_\mathrm{I}]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, and the minimum and maximum wavespeeds on the four faces adjacent to the edge, computed during the flux update. We denote these wavespeeds $\alpha_{\cbrac{0,1}}^{[\pm]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$; these are the same wavespeeds used to compute the face-normal velocity in Q26 (\cref{eqn:emf:q26-facevel}). Note that computing these wavespeeds requires that we solve the Riemann problem not just over the real cells of the domain, but for one ghost cell as well.
+Both schemes also require the magnetic fields reconstructed at the cell edges, $b_{0}^{[S_\mathrm{II}]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$ and $b_{1}^{[S_\mathrm{I}]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, and the wavespeed magnitudes at the edge, taken as the maximum of the corresponding face-level magnitudes (\sref{sec:methods:emf:compute}) on the two faces adjacent to that edge,
+\begin{align}
+    \alpha_0^{[\pm]}\EvalAtV{i + 1/2}{j + 1/2}{k}
+        &= \max\sbrac{
+            \alpha_0^{[\pm]}\EvalAtV{i + 1/2}{j}{k},
+            \alpha_0^{[\pm]}\EvalAtV{i + 1/2}{j + 1}{k}
+        }
+    , \label{eqn:emf:alpha-edge}
+\end{align}
+and analogously for $\alpha_1^{[\pm]}$ by cyclic permutation. Note that computing these wavespeeds requires that we solve the Riemann problem not just over the real cells of the domain, but for one ghost cell as well.
 
 Our first scheme, following the \citet[hereafter \citetalias{Londrillo04a}]{Londrillo04a} approach, combines the four corner EMFs using the solution to a 2D HLL Riemann solver. Our exact implementation of this solution is given by equation 41 of \citetalias{Felker18a},
 \begin{align}
@@ -338,6 +365,8 @@ Our first scheme, following the \citet[hereafter \citetalias{Londrillo04a}]{Lond
         }{
             \rbrac{\alpha_0^{[+]}+\alpha_0^{[-]}} \rbrac{\alpha_1^{[+]}+\alpha_1^{[-]}}
         }
+        \nonumber \\
+        &\nquad[1]
             + \frac{
                 \alpha_0^{[+]}\alpha_1^{[-]} \varepsilon_2^{[LT]}
                 + \alpha_0^{[-]}\alpha_1^{[-]} \varepsilon_2^{[RT]}
@@ -347,6 +376,8 @@ Our first scheme, following the \citet[hereafter \citetalias{Londrillo04a}]{Lond
         \nonumber \\
         &\nquad[1]
             - \frac{\alpha_1^{[+]}\alpha_1^{[-]}}{\alpha_1^{[+]}+\alpha_1^{[-]}} \rbrac{b_0^{[T]} - b_0^{[B]}}
+        \nonumber \\
+        &\nquad[1]
             + \frac{\alpha_0^{[+]}\alpha_0^{[-]}}{\alpha_0^{[+]}+\alpha_0^{[-]}} \rbrac{b_1^{[R]} - b_1^{[L]}}
     , \label{eqn:emf:ld04}
 \end{align}
@@ -363,9 +394,9 @@ Up to this point we have described our scheme for the ideal MHD equations. To ex
 \begin{align}
     \mVector{\varepsilon}
         &= -\mVector{u}\times\mVector{b} + \eta\, \mVector{j}
-    , \label{eqn:ohms-law-resistive}
+    , \label{eqn:resistivity:ohms-law}
 \end{align}
-where $\mVector{j} = \nabla\times\mVector{b}$ is the current density in (rationalised-Gaussian units). Since $\eta\, \mVector{j}$ lives at the same edges where we already store EMFs, the resistive term acts as an explicit magnetic-diffusion source that can be incorporated directly during the existing EMF calculation in \sref{sec:methods:emf}. Doing so reuses the existing EMF calculation's kernel launches and memory footprint, and leaves the CT update (\cref{eqn:ct_stokes_intro}) unaffected; thus $\nabla\cdot\mVector{b} = 0$ is preserved by construction.
+where $\mVector{j} = \nabla\times\mVector{b}$ is the current density in (rationalised-Gaussian units). Since $\eta\, \mVector{j}$ lives at the same edges where we already store EMFs, the resistive term acts as an explicit magnetic-diffusion source that can be incorporated directly during the existing EMF calculation in \sref{sec:methods:emf}. Doing so reuses the existing EMF calculation's kernel launches and memory footprint, and leaves the CT update (\cref{eqn:ct:circulation-update}) unaffected; thus $\nabla\cdot\mVector{b} = 0$ is preserved by construction.
 
 \begin{figure}
     \centering
@@ -387,7 +418,7 @@ The staggered mesh places each partial derivative exactly at the edge, so a cent
                 b_1\EvalAtV{i + 1}{j + 1/2}{k}
                 - b_1\EvalAtV{i}{j + 1/2}{k}
             } \nonumber \\
-        &\nquad[3]
+        &\nquad[1]
             - \frac{1}{\Delta{x_1}} \rbrac{
                 b_0\EvalAtV{i + 1/2}{j + 1}{k}
                 - b_0\EvalAtV{i + 1/2}{j}{k}
@@ -401,17 +432,17 @@ and corresponding expressions for $j_0$ and $j_1$ follow by cyclic permutation o
             + \eta\, j_2\EvalAtV{i + 1/2}{j + 1/2}{k}
     , \label{eqn:resistivity:emf-update}
 \end{align}
-so that the resistive term enters the same line-integral update of the face-centred magnetic field as the ideal EMF (\cref{eqn:ct_stokes_intro}). This treatment is explicit in time, and reduces exactly to the ideal scheme when $\eta = 0$.
+so that the resistive term enters the same line-integral update of the face-centred magnetic field as the ideal EMF (\cref{eqn:ct:circulation-update}). This treatment is explicit in time, and reduces exactly to the ideal scheme when $\eta = 0$.
 
-Note that, since the energy flux associated with the induction equation is linear in the EMF, adding the resistive term $\eta\,\mVector{j}$ to $\mVector{\varepsilon}$ (\cref{eqn:ohms-law-resistive}) adds a corresponding $\eta\,\mVector{j}\times\mVector{b}$ term to the total-energy flux of \cref{eqn:mhd_system}, on top of its existing ideal-MHD terms. Without this addition, energy would still be conserved by construction, but the flux across each face would be wrong: the magnetic energy that \cref{eqn:resistivity:emf-update} removes from $\mVector{b}$ would not be correctly transferred into internal energy, so energy would be split incorrectly between the two cells bordering that face. With this term, the dissipated magnetic energy is instead correctly converted into internal energy (Joule heating) at the rate $\eta\, j^2$ implied by \cref{eqn:resistivity:current-stencil}. We add this contribution to the flux on each cell face by gathering the resistive EMFs already computed on its four bounding edges.
+Note that, since the energy flux associated with the induction equation is linear in the EMF, adding the resistive term $\eta\,\mVector{j}$ to $\mVector{\varepsilon}$ (\cref{eqn:resistivity:ohms-law}) adds a corresponding $\eta\,\mVector{j}\times\mVector{b}$ term to the total-energy flux of \cref{eqn:mhd:conservation-laws}, on top of its existing ideal-MHD terms. Without this addition, energy would still be conserved by construction, but the flux across each face would be wrong: the magnetic energy that \cref{eqn:resistivity:emf-update} removes from $\mVector{b}$ would not be correctly transferred into internal energy, so energy would be split incorrectly between the two cells bordering that face. With this term, the dissipated magnetic energy is instead correctly converted into internal energy (Joule heating) at the rate $\eta\, j^2$ implied by \cref{eqn:resistivity:current-stencil}. We add this contribution to the flux on each cell face by gathering the resistive EMFs already computed on its four bounding edges.
 
 Treating the resistive term explicitly comes with a diffusive (parabolic) time-step constraint: stability requires
 \begin{align}
     \Delta t
         &\leq \mathrm{CFL}\, \frac{(\Delta{x}_\mathrm{min})^2}{6\, \eta}
-    , \label{eqn:resistive-cfl}
+    , \label{eqn:resistivity:cfl}
 \end{align}
-where $\Delta{x}_\mathrm{min}$ is the smallest cell width on the AMR-level and $\mathrm{CFL}$ is the Courant-Friedrichs-Lewy (CFL) number. We incorporate this constraint into the existing CFL machinery by treating $2\, \eta / \Delta{x}_\mathrm{min}$ as an effective signal speed contributed to the per-cell maximum alongside the MHD wave speeds, so that the hyperbolic and parabolic constraints share the same user-controlled CFL number. Note that, as for the hyperbolic constraint, the dimensional factor is absorbed into the CFL number: satisfying \cref{eqn:resistive-cfl} in 3D therefore requires $\mathrm{CFL} < 1/3$. We currently disable AMR subcycling-in-time when $\eta \ne 0$ to keep the resistive constraint consistent across refinement levels; relaxing this restriction to allow a per-level resistive time step is left as future work.
+where $\Delta{x}_\mathrm{min}$ is the smallest cell width on the AMR-level and $\mathrm{CFL}$ is the Courant-Friedrichs-Lewy (CFL) number. We incorporate this constraint into the existing CFL machinery by treating $2\, \eta / \Delta{x}_\mathrm{min}$ as an effective signal speed contributed to the per-cell maximum alongside the MHD wave speeds, so that the hyperbolic and parabolic constraints share the same user-controlled CFL number. Note that, as for the hyperbolic constraint, the dimensional factor is absorbed into the CFL number: satisfying \cref{eqn:resistivity:cfl} in 3D therefore requires $\mathrm{CFL} < 1/3$. We currently disable AMR subcycling-in-time when $\eta \ne 0$ to keep the resistive constraint consistent across refinement levels; relaxing this restriction to allow a per-level resistive time step is left as future work.
 
 \subsection{Time stepping with flux correction}
 \label{sec:methods:time-stepping}
@@ -442,8 +473,8 @@ At the start of each time step (see the first, pink box in \cref{fig:schematic:f
 
 For the first RK stage (see the first set of grouped steps in \cref{fig:schematic:flowchart}), we compute a set of high-order, low-dissipation fluxes and EMFs as described in \sref{sec:methods:flux} and \sref{sec:methods:emf}; this calculation is identical to the one used to compute $\mVector{F}_\mathrm{FO}^{[n]}$ and $\mVector{\varepsilon}_\mathrm{FO}^{[n]}$ above, except that we use a higher-order reconstruction scheme (PLM, PPM, or PPM-EP as chosen by the user) and the HLLD Riemann solver, rather than PC reconstruction coupled with the LLF Riemann solver; we denote the resulting fluxes and EMFs as $\mVector{F}_\mathrm{HO}^{[n]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{HO}^{[n]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$. From a generic set of fluxes and EMFs at time step $[m]$, we define the update increment for the conserved cell-centred quantities,
 \begin{align}
-    D^{[m]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
-        &= \frac{\Delta t}{\Delta{x_0}\, \Delta{x_1}\, \Delta{x_2}} \Bigg(
+    &D^{[m]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
+        = \frac{\Delta t}{\Delta{x_0}\, \Delta{x_1}\, \Delta{x_2}} \Bigg(
         \nonumber \\
         &\nquad[1]
             \, \Delta{x_1} \, \Delta{x_2} \rbrac{
@@ -463,20 +494,22 @@ For the first RK stage (see the first set of grouped steps in \cref{fig:schemati
                 - \mVector{F}^{[m]}\EvalAtV{i}{j}{k + 1/2}
             }
         \Bigg)
-    , \label{eqn:rk-operator-Sc}
+    , \label{eqn:rk:increment-state}
 \end{align}
 and, analogously, the update increment for the face-centred magnetic fields from the EMFs at the same time step
 \begin{align}
     &D^{[m]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
         = \frac{\Delta t}{\Delta{x_1} \, \Delta{x_2}} \Bigg(
-            \, \Delta{x_2} \, \varepsilon_2^{[m]}\EvalAtV{i + 1/2}{j - 1/2}{k}
         \nonumber \\
         &\nquad[2]
+            \, \Delta{x_2} \, \varepsilon_2^{[m]}\EvalAtV{i + 1/2}{j - 1/2}{k}
             + \Delta{x_1} \, \varepsilon_1^{[m]}\EvalAtV{i + 1/2}{j}{k + 1/2}
+        \nonumber \\
+        &\nquad[2]
             - \Delta{x_2} \, \varepsilon_2^{[m]}\EvalAtV{i + 1/2}{j + 1/2}{k}
             - \Delta{x_1} \, \varepsilon_1^{[m]}\EvalAtV{i + 1/2}{j}{k - 1/2}
     \Bigg)
-    , \label{eqn:rk-operator-b0}
+    , \label{eqn:rk:increment-bfield}
 \end{align}
 with $D^{[m]}\sbrac{b_1}$ and $D^{[m]}\sbrac{b_2}$ defined analogously, by cyclic permutation of the indices. The first RK stage's proposed intermediate state then follows directly,
 \begin{align}
@@ -497,31 +530,34 @@ and similarly for the face-centred magnetic fields,
 
 We then check whether any of the intermediate states $\mVector{S}_\mathrm{c}^{[n + 1/2]}\EvalAtH{i}{j}{k}$ or magnetic quantities (\eg $b_0^{[n + 1/2]}\EvalAtH{i + 1/2}{j}{k}$) are physically invalid; at a minimum this means flagging cell centre states with negative densities, total energies, or internal energies, but we also provide a hook for users to flag additional, more restrictive criteria, for example velocities that are unphysically large. For any cell $\EvalAtH{i}{j}{k}$ flagged as invalid (see \cref{fig:fofc} for an illustration), we replace the HO fluxes and EMFs for all of its faces and edges with their cached FO equivalents, $\mVector{F}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, and recompute the cell-centred state and face-centred magnetic fields for that cell by again applying \cref{eqn:rk1:update} with the replaced fluxes. We also recalculate $\mVector{S}_\mathrm{c}^{[n + 1/2]}\EvalAtH{i}{j}{k}$ and the face-centred magnetic fields for any cell sharing a face with a flagged cell, to ensure that we use consistent fluxes and EMFs for the updates to all cells, a necessary condition for conservation and maintenance of $\nabla\cdot\mVector{b} = 0$.
 
-For the second RK stage (see the second set of grouped steps in \cref{fig:schematic:flowchart}), we compute a set of high-order fluxes and EMFs exactly as we did to compute $\mVector{F}_\mathrm{HO}^{[n]}$ and $\mVector{\varepsilon}_\mathrm{HO}^{[n]}$ above, but we now use the intermediate-time states $\mVector{S}_\mathrm{c}^{[n + 1/2]}\EvalAtH{i}{j}{k}$ and $b_0^{[n + 1/2]}\EvalAtH{i + 1/2}{j}{k}$ as inputs. We denote these fluxes and EMFs as $\mVector{F}_\mathrm{HO}^{[n + 1/2]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{HO}^{[n + 1/2]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, giving access to the update increments $D^{[n + 1/2]}\sbrac{\mVector{S}_\mathrm{c}}$ and $D^{[n + 1/2]}\sbrac{b_0}$ following \cref{eqn:rk-operator-Sc,eqn:rk-operator-b0}. Together with the increments at time step $[n]$, determined during the first RK stage (using the HO fluxes and EMFs, unless they were replaced by their cached FO equivalents), the second RK stage's proposed final state is simply the average of both time steps' increments,
+For the second RK stage (see the second set of grouped steps in \cref{fig:schematic:flowchart}), we compute a set of high-order fluxes and EMFs exactly as we did to compute $\mVector{F}_\mathrm{HO}^{[n]}$ and $\mVector{\varepsilon}_\mathrm{HO}^{[n]}$ above, but we now use the intermediate-time states $\mVector{S}_\mathrm{c}^{[n + 1/2]}\EvalAtH{i}{j}{k}$ and $b_0^{[n + 1/2]}\EvalAtH{i + 1/2}{j}{k}$ as inputs. We denote these fluxes and EMFs as $\mVector{F}_\mathrm{HO}^{[n + 1/2]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{HO}^{[n + 1/2]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, giving access to the update increments $D^{[n + 1/2]}\sbrac{\mVector{S}_\mathrm{c}}$ and $D^{[n + 1/2]}\sbrac{b_0}$ following \cref{eqn:rk:increment-state,eqn:rk:increment-bfield}. Together with the increments at time step $[n]$, determined during the first RK stage (using the HO fluxes and EMFs, unless they were replaced by their cached FO equivalents), the second RK stage's proposed final state is simply the average of both time steps' increments,
 \begin{align}
     \mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtV{i}{j}{k}
         = \mVector{S}_\mathrm{c}^{[n]}\EvalAtV{i}{j}{k}
             &+ \frac{1}{2}\Bigg(
             D^{[n]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
+        \nonumber \\
+        &\nquad[3]
             + D^{[n + 1/2]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
         \Bigg)
     ,
 \end{align}
 and similarly for the face-centred magnetic fields,
 \begin{align}
-    \scalebox{0.925}{$\displaystyle
-    b_0^{[n + 1]}\EvalAtV{i + 1/2}{j}{k}
+    &b_0^{[n + 1]}\EvalAtV{i + 1/2}{j}{k}
         = b_0^{[n]}\EvalAtV{i + 1/2}{j}{k}
             + \frac{1}{2}\Bigg(
+        \nonumber \\
+        &\nquad[3]
             D^{[n]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
             + D^{[n + 1/2]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
         \Bigg)
-    $}, \label{eqn:rk2:update}
+    , \label{eqn:rk2:update}
 \end{align}
 
-We again check for physically invalid states $\mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtH{i}{j}{k}$ in any cells; if an invalid state is found, we replace the intermediate-time, $[n + 1/2]$, fluxes and EMFs on that cell's faces and edges with their cached FO equivalents, $\mVector{F}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, and recompute $\mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtH{i}{j}{k}$ and $b_0^{[n + 1]}\EvalAtH{i + 1/2}{j}{k}$ in both the flagged cell and every cell sharing a face with it, using the replaced fluxes.
+We again check for physically invalid states $\mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtH{i}{j}{k}$ in any cells; if an invalid state is found, we replace the RK-averaged fluxes and EMFs on that cell's faces and edges (\cref{eqn:rk2:update}) outright with their cached FO equivalents, $\mVector{F}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, which reduces that cell's full time step to a first-order, forwards Euler update regardless of whether its first RK stage used HO or FO fluxes. We then recompute $\mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtH{i}{j}{k}$ and $b_0^{[n + 1]}\EvalAtH{i + 1/2}{j}{k}$ in both the flagged cell and every cell sharing a face with it, using the replaced fluxes.
 
-This completes the update cycle. Note that if no flux replacements take place in either of the RK stages, then this update reduces to a standard RK2-SSP scheme. Conversely, if the HO fluxes are replaced with FO fluxes during both RK stages, the update across the full time step reduces to a first order in time, forwards Euler update. Importantly, this update only affects the cells that require it, so regions that are well behaved still achieve a higher-order update. Moreover, the benefit of this FOFC strategy is that it can also yield intermediate levels of approximation, between a full FO and a full HO update, if the FO flux is only used at one of the two RK stages.
+This completes the update cycle. Note that if no flux replacements take place in either of the RK stages, then this update reduces to a standard RK2-SSP scheme. Conversely, if the HO fluxes are replaced with FO fluxes during both RK stages, the update across the full time step reduces to a first order in time, forwards Euler update. Importantly, this update only affects the cells that require it, so regions that are well behaved still achieve a higher-order update. Moreover, the benefit of this FOFC strategy is that it can also yield an intermediate level of approximation, between a full FO and a full HO update, when only the first RK stage requires correction, since the second stage's HO fluxes still contribute their half-weight to the final update; a cell that instead requires correction at the second stage reverts fully to a first-order update for that step, irrespective of whether its first stage used HO or FO fluxes.
 
 \subsection{AMR considerations}
 \label{sec:methods:amr}
@@ -610,11 +646,13 @@ This wave shares the same grid-aligned geometry as the linearly-polarised Alfv\'
 
 Unlike both Alfv\'en waves, this wave follows from $\rho$ and $p$ both being perturbed alongside $\mVector{u}$ and $\mVector{b}$:
 \begin{align}
-    \scalebox{0.925}{$\displaystyle
-    \mVector{S}_\mathrm{c}^{[\delta\mathrm{fm}]}
+    &\mVector{S}_\mathrm{c}^{[\delta\mathrm{fm}]}
         = \delta_\mathrm{lin} \cos\sbrac{
                 \omega t - \mVector{k}\cdot\mVector{x}
             }
+        \nonumber \\
+        &\nquad[1]
+        \scalebox{0.925}{$\displaystyle
             \begin{Bmatrix}
                 \phi_1 \rho_\mathrm{bg} \\
                 c_\mathrm{fm} (
@@ -628,7 +666,8 @@ Unlike both Alfv\'en waves, this wave follows from $\rho$ and $p$ both being per
                         + \rho_\mathrm{bg} c_\mathrm{fm}^2 \rbrac{\phi_1^2 + \phi_2^2}
                     }
         \end{Bmatrix}
-    $},
+        $}
+    ,
 \end{align}
 with $\mVectorUnit{n}_\perp$ a unit vector orthogonal to $\mVectorUnit{n}_{k}$, lying in the plane formed by $\mVectorUnit{n}_{k}$ and $\mVectorUnit{n}_\mathrm{bg}$, and
 \begin{align}
@@ -640,6 +679,7 @@ with $\mVectorUnit{n}_\perp$ a unit vector orthogonal to $\mVectorUnit{n}_{k}$, 
                 }^2 - 4 c_\mathrm{s}^2 c_\mathrm{A}^2 \cos^2\theta
             }^{1/2}
         }
+    , \label{eqn:waves:fast-speed}
 \end{align}
 the fast magnetosonic speed, $c_\mathrm{s} = \sqrt{\gamma p_\mathrm{bg} / \rho_\mathrm{bg}}$ the sound speed, $\omega = c_\mathrm{fm} k$ the angular frequency, and the geometry factors $\phi_1$ and $\phi_2$ given by
 \begin{align}
@@ -656,11 +696,13 @@ For this test we use $\mVectorUnit{n}_\mathrm{bg} = \{0,1,0\}$ and $\mVectorUnit
 
 Like the fast magnetosonic wave, this wave follows from the same combined magnetic and gas pressure restoring force, perturbing $\rho$ and $p$ alongside $\mVector{u}$ and $\mVector{b}$:
 \begin{align}
-    \scalebox{0.925}{$\displaystyle
-    \mVector{S}_\mathrm{c}^{[\delta\mathrm{sm}]}
+    &\mVector{S}_\mathrm{c}^{[\delta\mathrm{sm}]}
         = \delta_\mathrm{lin} \cos\sbrac{
                 \omega t - \mVector{k}\cdot\mVector{x}
             }
+        \nonumber \\
+        &\nquad[1]
+        \scalebox{0.925}{$\displaystyle
             \begin{Bmatrix}
                 \phi_1 \rho_\mathrm{bg} \\
                 c_\mathrm{sm} (
@@ -675,7 +717,8 @@ Like the fast magnetosonic wave, this wave follows from the same combined magnet
                             + \rho_\mathrm{bg} c_\mathrm{sm}^2 (\phi_1^2 + \phi_2^2)
                         }
             \end{Bmatrix}
-    $} ,
+        $}
+    ,
 \end{align}
 with $\mVectorUnit{n}_\perp$ as defined for the fast magnetosonic wave,
 \begin{align}
@@ -689,6 +732,7 @@ with $\mVectorUnit{n}_\perp$ as defined for the fast magnetosonic wave,
                     - 4 c_\mathrm{s}^2 c_\mathrm{A}^2 \cos^2\theta
                 }^{1/2}
         }
+    , \label{eqn:waves:slow-speed}
 \end{align}
 the slow magnetosonic wave speed, $\omega = c_\mathrm{sm} k$ the angular frequency, and
 \begin{align}
@@ -714,8 +758,8 @@ For all four waves we adopt $\rho_\mathrm{bg} = b_\mathrm{bg} = 1$, $p_\mathrm{b
     \centering
     \includegraphics[width=0.55\linewidth]{figures/quokka-mhd/results/wave-convergence-grid-aligned.png}
     \caption{Convergence of all 18 scheme combinations: EMF compute (indicated by colours; \sref{sec:methods:emf:compute}), EMF averaging (indicated by markers; \sref{sec:methods:emf:averaging}), and reconstruction (indicated by line style; \sref{sec:methods:flux}), against four wave-propagation scenarios: linearly-polarised Alfv\'en (first panel;
-    \sref{sec:scheme-comparison:waves:alfven-linear}), circularly-polarised Alfv\'en (second panel; \sref{sec:scheme-comparison:waves:alfven-circular}), fast (third panel; \sref{sec:scheme-comparison:waves:fast}), and slow (last panel; \sref{sec:scheme-comparison:waves:slow}) waves. The relative error (\cref{defn:error:relative}) for each scheme combination is plotted against resolution (bottom axis), with the corresponding cell width shown on the top axis. A black dash-dotted line marks second-order convergence.}
-    \label{fig:linear_wave_convergence}
+    \sref{sec:scheme-comparison:waves:alfven-linear}), circularly-polarised Alfv\'en (second panel; \sref{sec:scheme-comparison:waves:alfven-circular}), fast (third panel; \sref{sec:scheme-comparison:waves:fast}), and slow (last panel; \sref{sec:scheme-comparison:waves:slow}) waves. The relative error (\cref{eqn:error:relative}) for each scheme combination is plotted against resolution (bottom axis), with the corresponding cell width shown on the top axis. A black dash-dotted line marks second-order convergence.}
+    \label{fig:waves:convergence}
 \end{figure}
 
 For each simulation we measure the relative mean absolute error between the evolved and initial wave profiles, which we compute as follows: first we compute the mean absolute difference for each element $s$ of the state vector $\mVector{S}_\mathrm{c}$ as
@@ -725,7 +769,7 @@ For each simulation we measure the relative mean absolute error between the evol
             s_\mathrm{exact}\EvalAtH{i}{j}{k}
             - s_\mathrm{sim}\EvalAtH{i}{j}{k}
         \big|
-    , \label{defn:error:absolute}
+    , \label{eqn:error:absolute}
 \end{align}
 where $s_\mathrm{sim}\EvalAtH{i}{j}{k}$ and $s_\mathrm{exact}\EvalAtH{i}{j}{k}$ are the simulated and analytically-exact values at the coordinate $\EvalAtH{i}{j}{k}$ where $s$ is stored (cell centre or face centre), respectively, $N_s$ is the number of cell centres or faces for that element, and the sums run over all centres or faces. We then similarly compute the normalisation for that element as
 \begin{align}
@@ -733,9 +777,9 @@ where $s_\mathrm{sim}\EvalAtH{i}{j}{k}$ and $s_\mathrm{exact}\EvalAtH{i}{j}{k}$ 
         = \frac{1}{N_s} \sum_{\forall i, j, k} \big|
             s_\mathrm{exact}\EvalAtH{i}{j}{k}
         \big|
-    , \label{defn:error:normalisation}
+    , \label{eqn:error:normalisation}
 \end{align}
-and combine \cref{defn:error:absolute} and \cref{defn:error:normalisation} to compute the relative error across all elements of $\mVector{S}_\mathrm{c}$ as
+and combine \cref{eqn:error:absolute} and \cref{eqn:error:normalisation} to compute the relative error across all elements of $\mVector{S}_\mathrm{c}$ as
 \begin{align}
     \mbox{relative error}
         = \rbrac{\frac{
@@ -743,13 +787,13 @@ and combine \cref{defn:error:absolute} and \cref{defn:error:normalisation} to co
                 }{
                     \sum_{\forall s} \mbox{norm}_s^2 N_s^2
             }}^{1/2}
-    . \label{defn:error:relative}
+    . \label{eqn:error:relative}
 \end{align}
-This relative error is plotted in \cref{fig:linear_wave_convergence} for all 18 scheme combinations, as a function of resolution (on the lower x-axis, and as cell spacing on the upper x-axis). Broadly, for all schemes and waves, we find that the error decreases as resolution increases, at a rate that is second-order. This is expected, since all three reconstruction schemes are second-order in space, or higher, and our time stepping strategy is second-order in time, which bottlenecks PPM and PPM-EP to second-order overall. PPM-EP converges cleanly to the numerical-precision floor, reaching a similar relative error to the more diffusive PLM scheme at roughly $4\times$ lower resolution. Plain PPM sits between these two reconstruction schemes through to moderate resolution, but at higher resolution its relative error departs from smooth convergence.
+This relative error is plotted in \cref{fig:waves:convergence} for all 18 scheme combinations, as a function of resolution (on the lower x-axis, and as cell spacing on the upper x-axis). Broadly, for all schemes and waves, we find that the error decreases as resolution increases, at a rate that is second-order. This is expected, since all three reconstruction schemes are second-order in space, or higher, and our time stepping strategy is second-order in time, which bottlenecks PPM and PPM-EP to second-order overall. PPM-EP converges cleanly to the numerical-precision floor, reaching a similar relative error to the more diffusive PLM scheme at roughly $4\times$ lower resolution. Plain PPM sits between these two reconstruction schemes through to moderate resolution, but at higher resolution its relative error departs from smooth convergence.
 
 Rather than converging to the numerical-precision floor, plain PPM's relative error reaches a problem-dependent minimum between $10^{-11}$ and $10^{-9}$, and then grows monotonically with increasing resolution. This effect is mild for both linearly and circularly polarised Alfv\'en waves alike, slightly more apparent in the fast magnetosonic wave, and very pronounced in the slow magnetosonic wave. Despite the degradation, this is not a numerical instability but an accuracy defect of the reconstruction scheme: a genuine instability would show unbounded growth, whereas here the solution remains bounded and conserves energy throughout. This is a well-known result of the Colella-Woodward monotonicity limiter \citep{Colella84a}, which cannot distinguish a smooth, well-resolved extremum from a genuine discontinuity, so it clips the wave crests, coherently damping the amplitude once the profile is adequately resolved; this is the same clipping-induced dissipation effect documented for smooth, periodic profiles by \citet{Felker18a}. The extremum-preserving version of PPM \citep[PPM-EP;][]{Rider07a} relaxes this limiter at smooth extrema and recovers clean convergence to the machine precision.
 
-This pathology is specific to smooth, linear, advection-dominated flows, where extrema of waves accumulate the limiter's clipping. Real problems are rarely as pristine as single-frequency waves: discontinuities and non-linear structures are exactly what the limiter exists to stabilise against. Indeed, of all the tests in this paper, this convergence study is the only one where this artefact of PPM appears; see \sref{sec:scheme-comparison:shocks} and \sref{sec:scheme-comparison:orszag-tang} for more detailed analysis of plain PPM and PPM-EP.
+This pathology is specific to smooth, linear, advection-dominated flows, where extrema of waves accumulate the limiter's clipping. Real problems are rarely as pristine as single-frequency waves: discontinuities and non-linear structures are exactly what the limiter exists to stabilise against. Indeed, of all the tests in this chapter, this convergence study is the only one where this artefact of PPM appears; see \sref{sec:scheme-comparison:shocks} and \sref{sec:scheme-comparison:orszag-tang} for more detailed analysis of plain PPM and PPM-EP.
 
 \subsection{Resolving magnetised shocks}
 \label{sec:scheme-comparison:shocks}
@@ -1002,7 +1046,7 @@ Since the choice of problem for strong and weak scaling is arbitrary, we use the
 
 For strong scaling we hold the problem size fixed at $512^3$ cells and increase the GPU count from $4$ to $512$ in doublings. For weak scaling, we use a common local problem size of $128^3$ cells per GPU, increasing $N_\mathrm{GPU}$ through $\{1, 8, 64, 512\}$.
 
-\Cref{fig:gpu-scaling} shows that Q26 is consistently the fastest EMF compute scheme, with a throughput roughly $30\%$ higher than \citetalias{Balsara25a} and $60\%$ higher than \citetalias{Felker18a}. The strong-scaling trends, however, differ between these schemes, following from the different number of ghost zones each requires (\sref{sec:methods:emf:compute}). Although Q26 requires fewer reconstruction steps and temporary variables, evaluating the face velocity in \cref{eqn:emf:q26-facevel} requires fluxes over more ghost zones; as a result, the additional work across this larger shell occupies a greater fraction of the update, and its throughput falls off more quickly than for the other schemes, but remains higher than both throughout. By contrast, the choice of EMF averaging scheme has almost no effect on throughput, since the averaging step changes neither the memory footprint nor the number of GPU kernel launches.
+\Cref{fig:gpu-scaling} shows that Q26 is consistently the fastest EMF compute scheme, with a throughput roughly $30\%$ higher than \citetalias{Balsara25a} and $60\%$ higher than \citetalias{Felker18a}, reaching over $50$ million cell updates per second per GPU at $N_\mathrm{GPU} = 4$. The strong-scaling trends, however, differ between these schemes, following from the different number of ghost zones each requires (\sref{sec:methods:emf:compute}). Although Q26 requires fewer reconstruction steps and temporary variables, evaluating the face velocity in \cref{eqn:emf:q26-facevel} requires fluxes over more ghost zones; as a result, the additional work across this larger shell occupies a greater fraction of the update, and its throughput falls off more quickly than for the other schemes, but remains higher than both throughout. By contrast, the choice of EMF averaging scheme has almost no effect on throughput, since the averaging step changes neither the memory footprint nor the number of GPU kernel launches.
 
 Despite the differences in absolute throughput, most scheme combinations achieve better than $70$\% weak-scaling efficiency from $1$ to $512$ GPUs, and better than $70$\% strong-scaling efficiency when each GPU is assigned at least $128^3$ cells.
 
@@ -1011,7 +1055,7 @@ Despite the differences in absolute throughput, most scheme combinations achieve
 
 Across all tests, our new Q26 scheme (\sref{sec:methods:emf:compute}) produces results in both linear and non-linear problems that are comparable to those of the existing \citetalias{Felker18a} and \citetalias{Balsara25a} schemes, while achieving substantially higher throughput (\sref{sec:scheme-comparison:speed}). Moreover, \citetalias{Balsara25b} averaging proved the most stable in reconnection-dominated flows (\sref{sec:scheme-comparison:reconnection}). We therefore adopt Q26 compute with \citetalias{Balsara25b} averaging as the default EMF scheme combination in \quokka.
 
-As for reconstruction order, we broadly find that both PPM and PPM-EP resolve structures in non-linear flows comparably well (\cref{fig:orszag-tang:reconstruction-schemes}); however, PPM-EP's extrema-preserving limiter avoids the clipping-induced degradation we found in plain PPM (for some smooth, low-$\mathcal{M}$ waves; \sref{sec:scheme-comparison:waves}). Moreover, when paired with our recommended EMF scheme combination, PPM-EP remains stable even in demanding, reconnection-dominated flows (\sref{sec:scheme-comparison:reconnection}). We therefore recommend PPM-EP as the default reconstruction scheme for most scenarios, with plain PPM as an alternative in strongly shock-dominated regimes.
+As for reconstruction order, we broadly find that both PPM and PPM-EP resolve structures in non-linear flows comparably well (\cref{fig:orszag-tang:reconstruction-schemes}); however, PPM-EP's extrema-preserving limiter avoids the clipping-induced degradation we found in plain PPM (for some smooth, low-$\mathcal{M}$ waves; \sref{sec:scheme-comparison:waves}). This accuracy comes at a stability cost: PPM-EP remains stable with only two of the six EMF scheme combinations we test in reconnection-dominated flows, compared to all six with plain PPM (\sref{sec:scheme-comparison:reconnection}). We accept this trade-off because one of the two stable combinations is our recommended EMF pairing (Q26 compute with \citetalias{Balsara25b} averaging), for which PPM-EP remains stable even in this demanding regime; we therefore recommend PPM-EP as the default reconstruction scheme specifically alongside this EMF pairing. If a user instead adopts a different EMF combination, plain PPM is the more stable choice, since, unlike PPM-EP, its stability does not depend on which EMF scheme it is paired with.
 
 
 \section{Tests for the recommended scheme}
@@ -1022,7 +1066,7 @@ Following the systematic comparison of all three EMF compute schemes (\sref{sec:
 \subsection{Directional bias in grid-misaligned waves}
 \label{sec:stress-tests:misaligned-waves}
 
-To test that our directionally-split solver does not introduce directional bias when waves propagate misaligned, rather than along the grid, we simulate the same slow magnetosonic wave introduced in \sref{sec:scheme-comparison:waves}. We choose this wave because its coupled, compressive perturbations to $\mVector{u}$ and $\mVector{b}$ make it the most stringent test of directional bias among the four waves we test. To probe this, we run it propagating obliquely at $128^3$ and $512^3$, checking whether any directional-bias artefact grows or shrinks with resolution.
+To test that our solver does not introduce directional bias when waves propagate misaligned, rather than along the grid, we simulate the same slow magnetosonic wave introduced in \sref{sec:scheme-comparison:waves}. We choose this wave because its coupled, compressive perturbations to $\mVector{u}$ and $\mVector{b}$ make it the most stringent test of directional bias among the four waves we test. To probe this, we run it propagating obliquely at $128^3$ and $512^3$, checking whether any directional-bias artefact grows or shrinks with resolution.
 
 We choose $\mVector{k}L/2\pi = \{1, 2, 3\}$ and $\theta \equiv \cos^{-1}\sbrac{\mVectorUnit{n}_\mathrm{bg}\cdot\mVectorUnit{n}_k} = 45^\circ$, so that neither $\mVectorUnit{n}_k$ nor $\mVectorUnit{n}_\mathrm{bg}$ is aligned with any axis of the grid, and simulate until $t = 4\pi/\omega$ (\ie two wave periods $T = 2\pi/\omega$) in domains of $128^3$ and $512^3$ cells. All other parameters are identical to those used in \sref{sec:scheme-comparison:waves}. For this configuration, $\mVectorUnit{n}_\perp = \{-2,1,0\}/\sqrt{5}$, built (as for every wave test) orthogonal to both $\mVectorUnit{n}_k$ and the grid's $x_2$ axis, so it carries no $x_2$ component by construction. With this setup, the wave's magnetic perturbation lies entirely along $\mVectorUnit{n}_\perp$, so $b_0$ carries the dominant share of the wave's magnetic perturbation; since no component of the perturbation contributes to $b_2$, it should remain unperturbed from its background value. In practice, however, this is not guaranteed numerically, so we use growth in $b_2$ as a metric for numerical artefacts: directional bias, seeded when the wave is reconstructed along grid directions it no longer shares. What matters is not $b_2$'s absolute growth, but growth relative to the wave's real signal, carried by $b_0$.
 
@@ -1045,7 +1089,7 @@ We choose $\mVector{k}L/2\pi = \{1, 2, 3\}$ and $\theta \equiv \cos^{-1}\sbrac{\
     \label{fig:quirk-carbuncle}
 \end{figure}
 
-Next we test a complementary regime to \sref{sec:stress-tests:misaligned-waves}: rather than a wave misaligned with the grid, we now consider a shock deliberately aligned with it. This is because, in low-dissipation, directionally split Riemann solvers (like our HLLD solver), pressure perturbations transverse to the direction being solved are dissipated less than those aligned with it. When this is left unaddressed, even small perturbations at shock fronts can grow into corrugated, non-planar instabilities \citep{Quirk94a, Minoshima21a}. Fortunately, a solution exists: a shock-anisotropy correction \citep{Minoshima21a} (\sref{sec:methods:flux}), which we have extended our HLLD solver to include. Here we verify, using the \citet{Quirk94a} test problem, that our Riemann solver with this correction avoids forming this \emph{carbuncle} instability.
+Next we test a complementary regime to \sref{sec:stress-tests:misaligned-waves}: rather than a wave misaligned with the grid, we now consider a shock deliberately aligned with it. This is because, in low-dissipation Riemann solvers applied dimension-by-dimension (like our HLLD solver), pressure perturbations transverse to the direction being solved are dissipated less than those aligned with it. When this is left unaddressed, even small perturbations at shock fronts can grow into corrugated, non-planar instabilities \citep{Quirk94a, Minoshima21a}. Fortunately, a solution exists: a shock-anisotropy correction \citep{Minoshima21a} (\sref{sec:methods:flux}), which we have extended our HLLD solver to include. Here we verify, using the \citet{Quirk94a} test problem, that our Riemann solver with this correction avoids forming this \emph{carbuncle} instability.
 
 The test we use is a strong, planar shock initialised at $x_0 = 0.4$ within a domain $x_0, x_1 \in [0,1]$, with $\gamma = 5/3$, and run with $128^2$ cells. We use outflowing (Dirichlet) boundary conditions in $x_0$ and periodic boundary conditions in $x_1$ (and $x_2$; see \cref{note:quokka:3d}). We initialise the post-shock region, $x_0 \leq 0.4$, as:
 \begin{align}
@@ -1199,7 +1243,7 @@ We validate our recommended scheme's ability to resolve tearing-mediated reconne
 
 Having shown in \sref{sec:scheme-comparison:reconnection} that our recommended scheme is one of only two EMF scheme combinations that remain stable with PPM-EP reconstruction for the \citet{HawleyStone95a} and \citet{Stone08a} current sheet problem, we now explore its resolved dynamics, using the same setup described there. We run this at $1024^2$ through to $t = 10$, with \cref{fig:current-sheet} showing the evolution of the out-of-plane current density across four snapshots. Initially, the magnetic field points along $x_1$ and reverses sign at $|x_0| = 0.25$, forming two thin, oppositely-signed current sheets (top-left panel); the velocity perturbation seeds the tearing instability that fragments these sheets into plasmoids (top-right panel). These rapidly merge and grow as the flow evolves, until, by $t = 10$ (bottom-right panel), only a single, larger island remains at each of the two reconnection sites.
 
-Current sheets in this test span the full domain, and thus tearing actually sets in comparatively more easily than in the Orszag-Tang vortex test from earlier in this paper (\sref{sec:scheme-comparison:orszag-tang}). There, current sheets are much thinner, with tearing only starting to appear at $4096^2$ (\cref{fig:orszag-tang:reconstruction-schemes}), so here we repeat the setup at $8192^2$ to confirm that with higher resolution, tearing modes are fully resolved. \Cref{fig:orszag-tang:zoomins} shows a snapshot of current density for this run at $t = 0.85$, with two zoom-in regions highlighting the rich structures resolved on small scales: first, the current sheet along the arm of the vortex that connects the central, long-lived plasmoid fragments into a chain of four plasmoids (top-right panel); further out, larger plasmoids sit intertwined with smaller ones (bottom-right panel). In both tests, our recommended scheme correctly resolves the expected tearing-mediated dynamics entirely at high order.
+Current sheets in this test span the full domain, and thus tearing actually sets in comparatively more easily than in the Orszag-Tang vortex test from earlier in this chapter (\sref{sec:scheme-comparison:orszag-tang}). There, current sheets are much thinner, with tearing only starting to appear at $4096^2$ (\cref{fig:orszag-tang:reconstruction-schemes}), so here we repeat the setup at $8192^2$ to confirm that with higher resolution, tearing modes are fully resolved. \Cref{fig:orszag-tang:zoomins} shows a snapshot of current density for this run at $t = 0.85$, with two zoom-in regions highlighting the rich structures resolved on small scales: first, the current sheet along the arm of the vortex that connects the central, long-lived plasmoid fragments into a chain of four plasmoids (top-right panel); further out, larger plasmoids sit intertwined with smaller ones (bottom-right panel). In both tests, our recommended scheme correctly resolves the expected tearing-mediated dynamics entirely at high order.
 
 \subsection{Divergence preservation under adaptive mesh refinement}
 \label{sec:stress-tests:field-loop}
@@ -1257,19 +1301,19 @@ Since $\delta b \ll 1$ (magnetic pressure is far smaller than the background pre
 
 Having thoroughly validated our recommended scheme against ideal MHD, we now validate our implementation of constant Ohmic resistivity (\sref{sec:methods:resistivity}), which makes two additions to the ideal update: a resistive correction to the EMF components (\cref{eqn:resistivity:emf-update}) and a corresponding Joule-heating term that is added to the total-energy flux. We validate these steps separately.
 
-First, we check that a resistively-damped, linearly-polarised Alfv\'en wave decays as the analytic solution predicts. Substituting the resistive Ohm's law (\cref{eqn:ohms-law-resistive}) into the induction equation (\cref{eqn:induction_intro}) means that a wave that would ideally oscillate at $\omega_\mathrm{ideal} = c_\mathrm{A} k \cos\theta$ instead decays as $\exp\sbrac{-\lambda t}$, where
+First, we check that a resistively-damped, linearly-polarised Alfv\'en wave decays as the analytic solution predicts. Substituting the resistive Ohm's law (\cref{eqn:resistivity:ohms-law}) into the induction equation (\cref{eqn:induction:continuous}) means that a wave that would ideally oscillate at $\omega_\mathrm{ideal} = c_\mathrm{A} k \cos\theta$ instead decays as $\exp\sbrac{-\lambda t}$, where
 \begin{align}
     \lambda
         = \frac{\eta k^2}{2}
-    , \label{eqn:resistive-alfven-decay}
+    , \label{eqn:resistivity:alfven-decay}
 \end{align}
 and oscillates at $\omega_\mathrm{real}$ (the real part of the complex frequency), where
 \begin{align}
     \omega_\mathrm{real}
         = \sqrt{\omega_\mathrm{ideal}^2 - \lambda^2}
-    . \label{eqn:resistive-alfven-frequency}
+    . \label{eqn:resistivity:alfven-frequency}
 \end{align}
-We use the same linearly-polarised Alfv\'en wave setup as in \sref{sec:scheme-comparison:waves:alfven-linear}, run with the wave propagating grid-aligned, $\mVector{k}L/2\pi = \{1,0,0\}$, and a constant resistivity $\eta$ introduced. We run $8$ instances of this test at a fixed resolution $N = 256$, varying $\eta \in [10^{-5}, 3.16 \times 10^{-2}]$ between each simulation, using $\mathrm{CFL} = 0.3$ throughout, consistent with the 3D stability requirement discussed in \sref{sec:methods:resistivity}. \Cref{fig:resistive-alfven-decay} shows that the measured decay rate matches the analytic $\lambda = \eta k^2/2$ (\cref{eqn:resistive-alfven-decay}) across the full range, confirming that the resistive EMF correction performs as expected.
+We use the same linearly-polarised Alfv\'en wave setup as in \sref{sec:scheme-comparison:waves:alfven-linear}, run with the wave propagating grid-aligned, $\mVector{k}L/2\pi = \{1,0,0\}$, and a constant resistivity $\eta$ introduced. We run $8$ instances of this test at a fixed resolution $N = 256$, varying $\eta \in [10^{-5}, 3.16 \times 10^{-2}]$ between each simulation, using $\mathrm{CFL} = 0.3$ throughout, consistent with the 3D stability requirement discussed in \sref{sec:methods:resistivity}. \Cref{fig:resistive-alfven-decay} shows that the measured decay rate matches the analytic $\lambda = \eta k^2/2$ (\cref{eqn:resistivity:alfven-decay}) across the full range, confirming that the resistive EMF correction performs as expected.
 
 This test, however, cannot validate the Joule-heating term: a periodic domain conserves total energy regardless of whether this term is implemented correctly, so a global energy check cannot distinguish a correct implementation from a broken, or missing, one. We separately confirm that the Joule-heating term is implemented correctly, matching \cref{eqn:resistivity:current-stencil} to machine precision.
 
@@ -1277,27 +1321,41 @@ This test, however, cannot validate the Joule-heating term: a periodic domain co
 \section{Chapter Conclusions}
 \label{sec:conclusions}
 
-In this paper we have implemented an MHD module, supporting both ideal and resistive (constant Ohmic) regimes, into the open-source code \quokka, extending its GPU-native radiation-hydrodynamic framework to magnetised flows. Our implementation couples to the existing Godunov finite-volume update of cell-centred state variables via a constrained transport (CT) update that stores magnetic fields on cell faces, using a staggered mesh
+In this chapter we have implemented an MHD module, supporting both ideal and resistive (constant Ohmic) regimes, into the open-source code \quokka, extending its GPU-native radiation-hydrodynamic framework to magnetised flows. Our implementation couples to the existing Godunov finite-volume update of cell-centred state variables via a constrained transport (CT) update that stores magnetic fields on cell faces, using a staggered mesh
 (see \cref{fig:schematic:grid}) that ensures $\nabla\cdot\mVector{b} = 0$ (to numerical precision) by construction. For the fluxes on these faces, we use an HLLD Riemann solver with stability and low-$\mathcal{M}$ pressure fixes based on \citet{Minoshima21a} (see \sref{sec:methods:flux}), and develop a first-order flux correction (FOFC) strategy that improves stability by detecting cells whose high-order update would produce an unphysical state and locally falling back to a more dissipative first-order update (see \sref{sec:methods:time-stepping}).
 
-We divide our CT scheme (see \sref{sec:methods:emf}) up into two modular parts: (i) how the edge-centred EMFs are computed from neighbouring face- and cell-centred data (see \sref{sec:methods:emf:compute}), and (ii) how the four-quadrant estimates for the EMF around each edge are combined into a single upwinded value (see \sref{sec:methods:emf:averaging}). For the EMF compute step we implemented two recent, state-of-the-art EMF compute schemes produced by \citetalias{Felker18a} and \citetalias{Balsara25a} (see \cref{fig:schematic:fs18} and \ref{fig:schematic:b25}, respectively), and, in this paper, we also introduce a new scheme (Q26; see \cref{fig:schematic:q26}). Our new scheme computes EMFs from face-normal velocities obtained directly from the flux calculation, rather than reconstructing them separately from cell centres, which reduces the number of reconstruction operations and temporary variables required for this step. We also implemented two EMF averaging schemes, namely those of \citetalias{Londrillo04a} and \citetalias{Balsara25b}.
+We divide our CT scheme (see \sref{sec:methods:emf}) up into two modular parts: (i) how the edge-centred EMFs are computed from neighbouring face- and cell-centred data (see \sref{sec:methods:emf:compute}), and (ii) how the four-quadrant estimates for the EMF around each edge are combined into a single upwinded value (see \sref{sec:methods:emf:averaging}). For the EMF compute step we implemented two recent, state-of-the-art EMF compute schemes produced by \citetalias{Felker18a} and \citetalias{Balsara25a} (see \cref{fig:schematic:fs18} and \ref{fig:schematic:b25}, respectively), and, in this chapter, we also introduce a new scheme (Q26; see \cref{fig:schematic:q26}). Our new scheme computes EMFs from face-normal velocities obtained directly from the flux calculation, rather than reconstructing them separately from cell centres, which reduces the number of reconstruction operations and temporary variables required for this step. We also implemented two EMF averaging schemes, namely those of \citetalias{Londrillo04a} and \citetalias{Balsara25b}.
 
 To determine which combination of these EMF compute and EMF averaging schemes best aligns with \quokka's performance goals (see \sref{sec:intro:goals} for a discussion), we perform a rigorous and systematic comparison (\sref{sec:scheme-comparisons}) of the accuracy and efficiency of every combination of EMF compute and averaging together with three reconstruction methods: piecewise linear (PLM), piecewise parabolic (PPM), and extrema-preserving PPM (PPM-EP). We test all scheme combinations of EMF compute, EMF averaging, and reconstruction method against both linear and highly-non-linear problems, and compare not only accuracy but also GPU throughput and scaling. Based on our systematic comparison, we recommend our Q26 EMF compute scheme coupled with \citetalias{Balsara25b} and PPM-EP as the default scheme combination for \quokka, since it provides roughly $30$--$60\%$ higher GPU throughput than the alternatives we test (\sref{sec:scheme-comparison:speed}; \cref{fig:gpu-scaling}), resolves equally accurate flow dynamics as the alternatives we considered, and was one of the most stable scheme combinations at this accuracy in reconnection-dominated flows (\sref{sec:scheme-comparison:reconnection}). Finally, we further validate our recommended scheme against a broader suite of tests (\sref{sec:stress-tests}).
 
 In future work we intend to expand these capabilities further into the non-ideal MHD regime, by adding treatments of ion-neutral drift and the Hall effect.
+
+
+\section*{Chapter Acknowledgements}
+
+We thank James R. Beattie and James Watt for many fruitful discussions that have greatly benefited this work.
+
+N.~K. acknowledges financial support from the Australian Government via the Australian Government Research Training Program Fee-Offset Scholarship. This work was supported by the Australian Research Council through award FL220100020 (to M.~R.~K.), and by computing resources supported by the Australian Government's National Collaborative Research Infrastructure Strategy (NCRIS), with access to Gadi at the National Computational Infrastructure and Setonix at the Pawsey Supercomputing Centre, through the National Computational Merit Allocation Scheme (award jh2). N.~K. also gratefully acknowledges access to the Marvin cluster and support from the HPC@HRZ Team and the High Performance Computing \& Analytics Lab at the University of Bonn.
+
+This work made use of the \textsc{AMReX} framework \citep{Zhang19b}, on which \quokka~is built. We also relied on the following programming languages and software packages to analyse and produce visualisations of our simulation data: \textsc{C++} \citep{stroustrup2013cpp}, \textsc{python} along with \textsc{numpy} \citep{oliphant2006guide, van2011numpy, harris2020array}, \textsc{matplotlib} \citep{hunter2007matplotlib, bisong2019matplotlib}, and \textsc{cython} \citep{behnel2010cython, smith2015cython}. The exact MHD Riemann solver, \textsc{MHDRiemannSolver} \citep{Kriel26a}, was developed by N.~K. to compute reference solutions of the shock-tube test in \cref{sec:scheme-comparison:shocks:ryu-jones}.
 
 \section{Chapter End Matter}
 
 \subsection{A Note on Notation}
 \label{sec:notation}
 
+Throughout this chapter we work with quantities that have many different variants, are stored on different stencils, and are evaluated at different times. To express all of this information consistently, we adopt a few notational conventions that depart from standard practice, so we describe them below.
+
 \paragraph*{Field and index conventions.}
-We use lower-case symbols for scalar and vector fields, and upper-case symbols for collections (\eg the state vector; see \autoref{defn:state-vector}) and for rank-2 tensors. Spatial indices $i$, $j$, and $k$ denote mesh positions: integers refer to cell centres, and half-integers to faces or edges (see \autoref{fig:schematic:grid}). Numbered subscripts indicate vector components aligned with coordinate axes; in three dimensions these correspond to the $x_1$, $x_2$, and $x_3$ directions, which follow the usual right-hand rule. Sub- and superscripts are also used to indicate context-specific information.
+
+We use lower-case symbols for scalar and vector fields, and upper-case symbols for collections (\eg~the state vector; see \cref{eqn:state:conserved}) and for rank-2 tensors. Spatial indices $i$, $j$, and $k$ denote mesh positions: integers refer to cell centres, and half-integers to faces or edges (see \cref{fig:schematic:grid}). Numbered subscripts indicate vector components aligned with coordinate axes, which correspond to the $x_0$, $x_1$, and $x_2$ directions (following the usual right-hand rule).
 
 \paragraph*{Brackets and superscripts.}
-Round brackets denote grouping, \eg~$a(b+c)$. Square brackets indicate evaluation at a discrete time level, $\mVector{S}^{[n]}$, $\mVector{S}^{[n+1/2]}$, and $\mVector{S}^{[n+1]}$. Curly brackets denote collections, such as the components of a vector. Superscripts are used in three ways: (i) to indicate time levels, as above; (ii) to distinguish reconstructed variants, in which case contextual information is enclosed in curly brackets, $\varepsilon_{3}^{\cbrac{TL}}\EvalAtH{i + 1/2}{j + 1/2}{k}$ and $\varepsilon_{3}^{\cbrac{BR}}\EvalAtH{i + 1/2}{j + 1/2}{k}$ and (iii) in the usual sense to denote powers (though this usage is rare in this paper).
 
-\paragraph*{Directional splitting and interface notation.}
-Because our update is directionally split, we describe the algorithm through the flux across the $x_1$-oriented face; the corresponding expressions for the $x_2$- and $x_3$-faces follow by cyclic permutation of the $i$, $j$, and $k$ indices. For clarity, we therefore work locally in the two-dimensional plane spanned by $x_1$ and $x_2$.
+Round brackets denote grouping, \eg~$a(b+c)$. Square brackets serve three roles: to group a set of arguments of a function or operator, \eg~$\exp\sbrac{1 - r^2}$; grouping the indices at which a quantity is sampled, \eg~$b_0\EvalAtH{i+1/2}{j}{k}$ (see \cref{fig:schematic:grid}); or, as a superscript, indicating a discrete case or instance of a quantity, either a time step, $\mVector{S}^{[n]}$ (see \cref{eqn:rk1:update,eqn:rk2:update}), or a specific reconstructed variant or wave type, $\varepsilon_2^{[LB]}$ and $\varepsilon_2^{[RT]}$ (see \cref{eqn:emf:ld04}). Curly brackets serve two roles: standard mathematical set membership, \eg~$S_\mathrm{I} \in \{L, R\}$ (see \sref{sec:methods:emf:compute}); or, as a subscript, a set of quantities that are jointly referenced or combined by the enclosing operator, \eg~$\bar{u}_{\cbrac{0,1}}$ for the average of $u_0$ and $u_1$ (see \cref{eqn:emf:fs18-average}). Superscripts are therefore used in two ways: (i) in square brackets, to indicate either a time step or a variant, and (ii) in the usual sense to denote powers (when not enclosed by square brackets).
 
-In reconstruction, interface states are labelled as left ($L$) and right ($R$), or top ($T$) and bottom ($B$). We denote side-based states by $S_\mathrm{I} \in \{L, R\}$ and $S_\mathrm{II} \in \{T, B\}$, and quadrant-based states either as single-sided labels $Q_\mathrm{I} \in \{T, R, B, L\}$ (for example, face-centred quantities reconstructed to a cell edge; see \autoref{fig:schematic:q26}), or as corner combinations $Q_\mathrm{II} \in \{TL, TR, BR, BL\}$ (for example, cell-centred quantities reconstructed to a cell edge; see \autoref{fig:schematic:fs18}). When necessary, we explicitly indicate reconstruction order or direction, for example $u_1^{\{Q_\mathrm{II}: x_1 x_2\}}$ and $u_1^{\{Q_\mathrm{II}: x_2 x_1\}}$.
+\paragraph*{Directional notation and interface labels.}
+
+Because the same procedure is applied independently along each direction, we describe the scheme through the flux across the $x_0$-oriented face; the corresponding expressions for the $x_1$- and $x_2$-faces follow by cyclic permutation of the $i$, $j$, and $k$ indices (see \cref{fig:schematic:grid}). For simplicity, we therefore describe all schemes in the local, 2D plane spanned by $x_0$ and $x_1$.
+
+The interface states that are produced by reconstruction are labelled: left ($L$) and right ($R$), or top ($T$) and bottom ($B$). We denote side-based states by $S_\mathrm{I} \in \{L, R\}$ and $S_\mathrm{II} \in \{T, B\}$ (see \cref{fig:schematic:b-common}), and quadrant-based states either as single-sided labels $Q_\mathrm{I} \in \{T, R, B, L\}$ (see \cref{fig:schematic:q26}), or as corner combinations $Q_\mathrm{II} \in \{LB, RB, LT, RT\}$ (see \cref{fig:schematic:fs18}). When necessary, we explicitly indicate the order of reconstruction steps, \eg~$u_0^{[Q_\mathrm{II}: x_0 x_1]}$ and $u_0^{[Q_\mathrm{II}: x_1 x_0]}$.
