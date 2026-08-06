@@ -4,7 +4,7 @@
 \subsection{How we reveal the invisible}
 \label{sec:how-we-see}
 
-While magnetic fields do not emit radiation directly, their presence can be inferred from the imprint they leave on radiation that has been emitted by and propagated through ionised environments. This inference rests on physics established through laboratory experiments and near-Earth space measurements, which have revealed how magnetic fields influence charged particles and how they modify the polarisation and spectral properties of the radiation we observe. In astrophysics, these same signatures are used to probe and constrain properties of magnetic fields in distant systems, where entire observational surveys are often built around employing a single technique. The catch, however, is that each probe is only sensitive to a particular component of the field, and moreover, the inferred signal is often also impacted by other properties of the medium. No single observational technique is therefore able to provide a complete view of the cosmic magnetic fields that thread our Universe. Instead, a coherent picture only emerges once we combine complementary measurements, with the degeneracies of one tracer constrained by another. 
+While magnetic fields do not emit radiation directly, their presence can be inferred from the imprint they leave on radiation that has been emitted by and propagated through ionised environments. This inference rests on physics established through laboratory experiments and near-Earth space measurements, which have revealed how magnetic fields influence charged particles and how they modify the polarisation and spectral properties of the radiation we observe. In astrophysics, these same signatures are used to probe and constrain properties of magnetic fields in distant systems, where entire observational surveys are often built around employing a single technique. The catch, however, is that each probe is only sensitive to a particular component of the field, and moreover, the inferred signal is often also impacted by other properties of the medium. Therefore no single observational technique is able to provide a complete view of the cosmic magnetism that threads our Universe. Instead, a coherent picture only emerges once we combine complementary measurements, with the degeneracies of one tracer constrained by another.
 
 Below we discuss a number of observational techniques, highlighting the conditions under which they are useful and which components of magnetic fields they reveal (summarised in \autoref{table:seeing:reqs} and \ref{table:seeing:b-parts}). We then highlight some of the galactic magnetic-fields inferred using these probes in \S\ref{sec:what-we-see}.
 
@@ -12,20 +12,20 @@ Below we discuss a number of observational techniques, highlighting the conditio
 \centering
 \caption{Summary of the conditions required for the observational probes discussed below, to produce signatures of cosmic magnetic fields.}
 \label{table:seeing:reqs}
-\renewcommand{\arraystretch}{1.75}
+\renewcommand{\arraystretch}{1.65}
 \begin{tabular}{>{\raggedright\arraybackslash}p{0.3\textwidth} p{0.65\textwidth}}
     \hline
     Probe & Environmental requirements (and limitations) \\
     \hline
     Zeeman splitting (\S\ref{sec:how-we-see:zeeman})
     & Atomic or molecular transitions with narrow, bright spectral lines \\
-    
+
     Synchrotron radiation (\S\ref{sec:how-we-see:synchrotron})
     & Relativistic electron population; sensitive to beam averaging \\
-    
+
     Faraday rotation (\S\ref{sec:how-we-see:faraday-rotation})
     & Ionised medium with free electrons along the line of sight; polluted by foreground contamination \\
-    
+
     Dust polarisation (\S\ref{sec:how-we-see:polarisation})
     & Dust grains in an anisotropic radiation field; affected by line-of-sight and beam averaging \\
     \hline
@@ -36,26 +36,26 @@ Below we discuss a number of observational techniques, highlighting the conditio
 \centering
 \caption{Summary of observational probes and the magnetic field components that they constrain.}
 \label{table:seeing:b-parts}
-\renewcommand{\arraystretch}{1.75}
+\renewcommand{\arraystretch}{1.65}
 \begin{tabular}{>{\raggedright\arraybackslash}p{0.325\textwidth} p{0.625\textwidth}}
     \hline
     Magnetic field component & Observational sensitivity \\
     \hline
     Total field strength, $b$
     & Synchrotron intensity (\S\ref{sec:how-we-see:synchrotron}; indirect; depends on particle population and assumptions, \eg equipartition) \\
-    
+
     Plane-of-sky field, $b_\perp$
     & Synchrotron polarisation (\S\ref{sec:how-we-see:synchrotron}); dust polarisation (\S\ref{sec:how-we-see:polarisation}; orientation; strength inferred via the Davis-Chandrasekhar-Fermi method) \\
-    
+
     ``Ordered'' vs ``turbulent'' field structure
     & Synchrotron (de)polarisation (\S\ref{sec:how-we-see:synchrotron}); beam and line-of-sight averaging (\S\ref{sec:how-we-see:polarisation}) \\
-    
+
     Line-of-sight field, $b_\parallel$
     & Faraday rotation (\S\ref{sec:how-we-see:faraday-rotation}; weighted by thermal electrons); Zeeman splitting (\S\ref{sec:how-we-see:zeeman}) \\
-    
+
     Large-scale field  coherence
     & Variation of Faraday rotation across sightlines (\S\ref{sec:how-we-see:faraday-rotation}); similarly for polarisation (\S\ref{sec:how-we-see:synchrotron}, and \S\ref{sec:how-we-see:polarisation}) \\
-    
+
     Small-scale field fluctuations
     & Depolarisation, beam averaging, and frequency-dependent Faraday effects (\S\ref{sec:how-we-see:faraday-rotation}); beam and line-of-sight averaging (\S\ref{sec:how-we-see:synchrotron}, \S\ref{sec:how-we-see:polarisation}) \\
     \hline
@@ -63,12 +63,10 @@ Below we discuss a number of observational techniques, highlighting the conditio
 \end{table}
 
 
-% https://www.chromoscope.net
-
 \subsubsection{Zeeman Splitting}
 \label{sec:how-we-see:zeeman}
 
-Zeeman splitting provides one of the most direct ways to measure astrophysical magnetic fields \citep{crutcher2012magnetic, crutcher2019review}. It relies on detecting the Zeeman effect in spectral lines, which is caused by an external magnetic field shifting the energy levels of ions, atoms, or molecules, which leaves a corresponding imprint on the observed spectrum. When detected, this directly constrains the line-of-sight component of the field, $b_\parallel$, which, in contrast to the other probes we discuss below, does not hinge on any assumptions about cosmic-ray populations or energy equipartition, and instead depends directly on the local magnetic field (where the emission took place) \citep{crutcher2012magnetic}, as illustrated in \autoref{fig:zeeman}.
+Zeeman splitting provides one of the most direct ways to measure astrophysical magnetic fields \citep{crutcher2012magnetic, crutcher2019review}. It relies on detecting the Zeeman effect in spectral lines, which is caused by an external magnetic field shifting the energy levels of ions, atoms, or molecules, which leaves a corresponding imprint on the observed spectrum. When detected, this directly constrains the line-of-sight component of the field, $b_\parallel$, which, in contrast to the other probes we discuss below, does not hinge on any assumptions about cosmic-ray populations or energy equipartition, and instead depends directly on the local magnetic field (where the emission took place) \citep{crutcher2012magnetic}; the observed signal is illustrated in \autoref{fig:zeeman}.
 
 \begin{figure}
     \centering
@@ -77,7 +75,7 @@ Zeeman splitting provides one of the most direct ways to measure astrophysical m
     \label{fig:zeeman}
 \end{figure}
 
-This effect arises as a consequence of electrons carrying magnetic moments associated with their spin and orbital motion. In the absence of an external magnetic field, these moments have no preferred orientation, so the magnetic sublevels relevant to a given transition are degenerate, and the transitions only produce spectral lines at a single frequency. When an external magnetic field is present, however, the field couples to the magnetic moments of bound electrons in the emitting or absorbing species, and exerts a torque that causes them to precess about the field direction. In these configurations, the field favours orientations that are more closely aligned or anti-aligned, which lifts the degeneracy and shifts the corresponding transition's energy levels by a small amount. In turn, these energy shifts translate into small frequency offsets,
+This effect arises as a consequence of electrons carrying magnetic moments associated with their spin and orbital motion. In the absence of an external magnetic field, these moments have no preferred orientation, so the magnetic sublevels relevant to a given transition are degenerate, and the transitions only produce spectral lines at a single frequency. However, when an external magnetic field is present, the field couples to the magnetic moments of bound electrons in the emitting or absorbing species, and exerts a torque that causes them to precess about the field's orientation. In these configurations, the field favours orientations that are more closely aligned or anti-aligned, which lifts the degeneracy and shifts the corresponding transition's energy levels by a small amount. In turn, these energy shifts translate into small frequency offsets,
 \begin{align}
     \Delta \lambda
         \propto b_\parallel
@@ -131,7 +129,7 @@ where $n_\mathrm{th}$ is the thermal (free) electron number density, and $b_\par
     \label{fig:faraday}
 \end{figure}
 
-In realistic astrophysical plasmas, however, $b_\parallel$ can reverse many times along the line of sight, so positive and negative contributions often lead to integrated $\mathrm{RM}$ that nearly cancel \citep{haverkorn2014magnetic}. As a consequence, in practice, $\mathrm{RM}$ primarily traces the net, large-scale component of $b_\parallel$, while small-scale structures are imprinted as fluctuations in $\mathrm{RM}$ across neighbouring sightlines, and as depolarisation of the polarised emission. Interpreting $\mathrm{RM}$ in terms of a field strength, therefore benefits from independent constraints on $n_\mathrm{th}$, and from combining Faraday rotation with synchrotron intensity and polarisation to jointly constrain $b_\parallel$ and $b_\perp$.
+In realistic astrophysical plasmas, however, $b_\parallel$ can reverse many times along the line of sight, so positive and negative contributions often lead to integrated $\mathrm{RM}$ that nearly cancel \citep{haverkorn2014magnetic}. As a consequence, in practice, $\mathrm{RM}$ primarily traces the net, large-scale component of $b_\parallel$, while small-scale structures are imprinted as fluctuations in $\mathrm{RM}$ across neighbouring sightlines, and as depolarisation of the polarised emission. Interpreting $\mathrm{RM}$ in terms of a field strength therefore benefits from independent constraints on $n_\mathrm{th}$, and from combining Faraday rotation with synchrotron intensity and polarisation to jointly constrain $b_\parallel$ and $b_\perp$.
 
 \subsubsection{Dust Polarisation}
 \label{sec:how-we-see:polarisation}
@@ -161,7 +159,7 @@ where $Q$ is an order-unity calibration factor that absorbs geometric and line-o
 \subsection{A (Brief) Excursion Through Astrophysical Plasmas}
 \label{sec:what-we-see}
 
-Zeeman splitting has been successfully applied to star-forming, dense molecular clouds, where measurements indicate $b \sim 10-100 \,\mu\mathrm{G}$ in regions undergoing active collapse and feedback (\eg \citealt{sarma2013very}; see also, \eg \citealt{pattle2022magnetic} for a thorough review). Independent dust polarisation and Faraday-based observations are consistent with these estimates, and indicate that the orientation of $b$ remains ordered over entire cloud complexes on scales of $\sim 10 \,\mathrm{pc}$ \citep{collaboration2015planck, fissel2016balloon, tahani2018helical}. Moreover, dust polarisation measurements at far-infrared wavelengths ($\lambda \sim 50-200 \,\mu\mathrm{m}$) extend this picture to denser regions of the Milky Way, revealing similarly ordered magnetic structures in dense, dust-obscured regions of active star formation \citep{lopez2020sofia}. While these different probes and surveys point to a common conclusion for magnetic fields in the Milky Way's dense ISM and star-forming clouds: magnetic energy densities fluctuate about equipartition with kinetic and gravitational energy densities, one needs to be careful interpreting these measurements directly. Numerical simulations have shown that projection effects and intermittency can complicate the mapping between observed and intrinsic field properties \citep{camacho2023kinetic, hu2023sub, seta2025magnetic}.
+Zeeman splitting has been successfully applied to star-forming, dense molecular clouds, where measurements indicate $b \sim 10-100 \,\mu\mathrm{G}$ in regions undergoing active collapse and feedback (\eg \citealt{sarma2013very}; see also, \eg \citealt{pattle2022magnetic} for a thorough review). Independent dust polarisation and Faraday-based observations are consistent with these estimates, and indicate that the orientation of $b$ remains ordered over entire clouds, at least on scales of $\sim 10 \,\mathrm{pc}$ \citep{collaboration2015planck, fissel2016balloon, tahani2018helical}. Moreover, dust polarisation measurements at far-infrared wavelengths ($\lambda \sim 50-200 \,\mu\mathrm{m}$) extend this picture to denser regions of the Milky Way, revealing similarly ordered magnetic structures in dense, dust-obscured regions of active star formation \citep{lopez2020sofia}. These different probes and surveys point to a common conclusion for magnetic fields in the Milky Way's dense ISM and star-forming clouds: magnetic energy densities fluctuate about equipartition with kinetic and gravitational energy densities. However, one needs to be careful interpreting these measurements directly, since numerical simulations have shown that projection effects and intermittency can complicate the mapping between observed and intrinsic field properties \citep{camacho2023kinetic, hu2023sub, seta2025magnetic}.
 
 Beyond the Milky Way, nearby spiral galaxies provide some of the clearest evidence for galactic magnetic fields. In the grand-design spiral galaxy M51, for example, synchrotron polarisation and rotation measure observations at $6 \,\mathrm{cm}$ reveal a magnetic field organised on $\sim \mathrm{kpc}$ scales, closely tracing the spiral arms of the disc \citep{fletcher2011magnetic}. In contrast, dust polarisation measurements at $154 \,\mu\mathrm{m}$ reveal a field that varies on $\sim 10 \,\mathrm{pc}$ scales across regions of dense molecular ISM \citep{borlaff2021extragalactic}. These measurements (see \autoref{fig:m51}) probe different phases of the ISM, with dust polarisation tracing cold, dense gas that is sensitive to the plane-of-sky orientation of $b$, while synchrotron emission and Faraday rotation sample diffuse magnetised plasma distributed across the disc. The coexistence of these signatures suggests that the galactic magnetic field carries a large-scale component organised across the disc, alongside a component that varies across the turbulent, star-forming ISM. Similar dust polarisation observations with ALMA show that this is not unique to M51, and is instead a common feature of present-day spiral galaxies \citep[\eg][]{belfiori2025dust, de2025grand}.
 
@@ -172,4 +170,4 @@ Beyond the Milky Way, nearby spiral galaxies provide some of the clearest eviden
     \label{fig:m51}
 \end{figure}
 
-Perhaps the most surprising observational result, which as we discuss below, sits at odds with the current picture of magnetogenesis, is that coherent magnetic fields already appear to be present on $\sim\mathrm{kpc}$ scales in ``young'' galaxies. Rotation-measure studies at $z \sim 1$ indicate ordered line-of-sight field components comparable to those in nearby systems \citep{bernet2008strong, sur2018faraday}. More recently, ALMA detections of polarised dust emission have extended this picture to earlier epochs, revealing ordered plane-of-sky magnetic structures at $z \approx 2.6$ and $z \approx 5.6$ on scales of several $\mathrm{kpc}$ \citep{geach2023polarized, chen2024kiloparsec}. This is particularly surprising, because these ordered fields are usually associated with mechanisms that rely on sustained coherent rotation to organise magnetic structure on galactic scales. These galaxies, however, are placed at epochs where rotationally supported discs are generally not expected to have fully formed (\citealt{geach2023polarized} estimate a dynamo number $\mathcal{D} \approx 3$; see \S\ref{sec:evolve:lsd}). The presence of coherent magnetic fields at such early times therefore poses a significant challenge, and motivates a closer exploration of the circumstances and conditions under which large-scale magnetic structures could be generated in young systems.
+Perhaps the most surprising observational result, which, as we discuss below, sits at odds with the current picture of magnetogenesis, is that coherent magnetic fields already appear to be present on $\sim\mathrm{kpc}$ scales in ``young'' galaxies. Rotation-measure studies at $z \sim 1$ indicate ordered line-of-sight field components comparable to those in nearby systems \citep{bernet2008strong, sur2018faraday}. More recently, ALMA detections of polarised dust emission have extended this picture to earlier epochs, revealing ordered plane-of-sky magnetic structures at $z \approx 2.6$ and $z \approx 5.6$ on scales of several $\mathrm{kpc}$ \citep{geach2023polarized, chen2024kiloparsec}. This is particularly surprising, because these ordered fields are usually associated with mechanisms that rely on sustained coherent rotation to organise magnetic structure on galactic scales. These galaxies, however, are placed at epochs where rotationally supported discs are generally not expected to have fully formed (\citealt{geach2023polarized} estimate a dynamo number $\mathcal{D} \approx 3$; see \S\ref{sec:evolve:lsd}). The presence of coherent magnetic fields at such early times therefore poses a significant challenge, and motivates a closer exploration of the circumstances and conditions under which large-scale magnetic structures could be generated in young systems.
