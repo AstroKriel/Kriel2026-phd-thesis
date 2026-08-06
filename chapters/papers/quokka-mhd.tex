@@ -191,14 +191,12 @@ In addition to the HLLD Riemann solver, we also implement a Local Lax-Friedrichs
 
 The second step in advancing the MHD equations in time, which occurs after the flux calculation described in the previous section, is calculation of the EMFs required to update the magnetic field. As with the flux calculation, this involves two steps: first reconstructing either the EMFs or the quantities required to compute them at the cell edges where the EMFs are needed, and then combining the results of this reconstruction into a single EMF that can be used to update the magnetic field. In what follows, we will for notational simplicity specialise to the case of an update in the $x_0$ direction, for which the face has edges oriented in the $x_1$- and $x_2$-directions; the corresponding procedures for other directions can be obtained by cyclic permutation of the indices. Thus our goal for cell $\EvalAtH{i}{j}{k}$ is to arrive at estimates for the four average EMFs on the edges surrounding face $\EvalAtH{i + 1/2}{j}{k}$, so that we can write the semi-discrete evolution equation (\cref{eqn:ct:circulation-update}) as
 \begin{align}
-    &\mpFrac{b_0}{t}\EvalAtV{i + 1/2}{j}{k}
-        =  \frac{1}{\Delta{x_1}\, \Delta{x_2}} \Bigg(
-        \nonumber \\
-        &\nquad[3]
+    \mpFrac{b_0}{t}\EvalAtV{i + 1/2}{j}{k}
+        &=  \frac{1}{\Delta{x_1}\, \Delta{x_2}} \Bigg(
             \Delta{x_2} \, \varepsilon_2\EvalAtV{i + 1/2}{j - 1/2}{k}
             + \Delta{x_1} \, \varepsilon_1\EvalAtV{i + 1/2}{j}{k + 1/2}
         \nonumber \\
-        &\nquad[4]
+        &\nquad[5]
             - \Delta{x_2} \, \varepsilon_2\EvalAtV{i + 1/2}{j + 1/2}{k}
             - \Delta{x_1} \, \varepsilon_1\EvalAtV{i + 1/2}{j}{k - 1/2}
         \Bigg)
@@ -238,8 +236,6 @@ We then reconstruct these face-centred velocities at cell edges, reconstructing 
     \bar{\mVector{u}}_{\cbrac{0,1}}^{[Q_\mathrm{II}]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         &= \frac{1}{2} \Bigg(
             \mVector{u}_{\cbrac{0,1}}^{[Q_\mathrm{II}: x_0 x_1]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
-        \nonumber \\
-        &\nquad[4]
             + \mVector{u}_{\cbrac{0,1}}^{[Q_\mathrm{II}: x_1 x_0]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         \Bigg)
     , \label{eqn:emf:fs18-average}
@@ -289,8 +285,6 @@ As in the \citetalias{Felker18a} method, we have two estimates for each of the f
     \varepsilon_{2}^{[Q_\mathrm{II}]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         &= \frac{1}{2}\Bigg(
             \varepsilon_{2}^{[Q_\mathrm{II}: x_0 x_1]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
-        \nonumber \\
-        &\nquad[4]
             + \varepsilon_{2}^{[Q_\mathrm{II}: x_1 x_0]}\EvalAtV{i \pm 1/2}{j \pm 1/2}{k}
         \Bigg)
     , \label{eqn:emf:b25a-average}
@@ -365,8 +359,6 @@ Our first scheme, following the \citet[hereafter \citetalias{Londrillo04a}]{Lond
         }{
             \rbrac{\alpha_0^{[+]}+\alpha_0^{[-]}} \rbrac{\alpha_1^{[+]}+\alpha_1^{[-]}}
         }
-        \nonumber \\
-        &\nquad[1]
             + \frac{
                 \alpha_0^{[+]}\alpha_1^{[-]} \varepsilon_2^{[LT]}
                 + \alpha_0^{[-]}\alpha_1^{[-]} \varepsilon_2^{[RT]}
@@ -376,8 +368,6 @@ Our first scheme, following the \citet[hereafter \citetalias{Londrillo04a}]{Lond
         \nonumber \\
         &\nquad[1]
             - \frac{\alpha_1^{[+]}\alpha_1^{[-]}}{\alpha_1^{[+]}+\alpha_1^{[-]}} \rbrac{b_0^{[T]} - b_0^{[B]}}
-        \nonumber \\
-        &\nquad[1]
             + \frac{\alpha_0^{[+]}\alpha_0^{[-]}}{\alpha_0^{[+]}+\alpha_0^{[-]}} \rbrac{b_1^{[R]} - b_1^{[L]}}
     , \label{eqn:emf:ld04}
 \end{align}
@@ -473,23 +463,21 @@ At the start of each time step (see the first, pink box in \cref{fig:schematic:f
 
 For the first RK stage (see the first set of grouped steps in \cref{fig:schematic:flowchart}), we compute a set of high-order, low-dissipation fluxes and EMFs as described in \sref{sec:methods:flux} and \sref{sec:methods:emf}; this calculation is identical to the one used to compute $\mVector{F}_\mathrm{FO}^{[n]}$ and $\mVector{\varepsilon}_\mathrm{FO}^{[n]}$ above, except that we use a higher-order reconstruction scheme (PLM, PPM, or PPM-EP as chosen by the user) and the HLLD Riemann solver, rather than PC reconstruction coupled with the LLF Riemann solver; we denote the resulting fluxes and EMFs as $\mVector{F}_\mathrm{HO}^{[n]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{HO}^{[n]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$. From a generic set of fluxes and EMFs at time step $[m]$, we define the update increment for the conserved cell-centred quantities,
 \begin{align}
-    &D^{[m]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
-        = \frac{\Delta t}{\Delta{x_0}\, \Delta{x_1}\, \Delta{x_2}} \Bigg(
-        \nonumber \\
-        &\nquad[1]
-            \, \Delta{x_1} \, \Delta{x_2} \rbrac{
+    D^{[m]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
+        &= \Delta t \Bigg(
+            \, \frac{1}{\Delta{x_0}} \rbrac{
                 \mVector{F}^{[m]}\EvalAtV{i - 1/2}{j}{k}
                 - \mVector{F}^{[m]}\EvalAtV{i + 1/2}{j}{k}
             }
         \nonumber \\
-        &\nquad[1]
-            + \Delta{x_0} \, \Delta{x_2} \rbrac{
+        &\nquad[2]
+            + \frac{1}{\Delta{x_1}} \rbrac{
                 \mVector{F}^{[m]}\EvalAtV{i}{j - 1/2}{k}
                 - \mVector{F}^{[m]}\EvalAtV{i}{j + 1/2}{k}
             }
         \nonumber \\
-        &\nquad[1]
-            + \Delta{x_0} \, \Delta{x_1} \rbrac{
+        &\nquad[2]
+            + \frac{1}{\Delta{x_2}} \rbrac{
                 \mVector{F}^{[m]}\EvalAtV{i}{j}{k - 1/2}
                 - \mVector{F}^{[m]}\EvalAtV{i}{j}{k + 1/2}
             }
@@ -498,14 +486,12 @@ For the first RK stage (see the first set of grouped steps in \cref{fig:schemati
 \end{align}
 and, analogously, the update increment for the face-centred magnetic fields from the EMFs at the same time step
 \begin{align}
-    &D^{[m]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
-        = \frac{\Delta t}{\Delta{x_1} \, \Delta{x_2}} \Bigg(
-        \nonumber \\
-        &\nquad[2]
+    D^{[m]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
+        &= \frac{\Delta t}{\Delta{x_1} \, \Delta{x_2}} \Bigg(
             \, \Delta{x_2} \, \varepsilon_2^{[m]}\EvalAtV{i + 1/2}{j - 1/2}{k}
             + \Delta{x_1} \, \varepsilon_1^{[m]}\EvalAtV{i + 1/2}{j}{k + 1/2}
         \nonumber \\
-        &\nquad[2]
+        &\nquad[5]
             - \Delta{x_2} \, \varepsilon_2^{[m]}\EvalAtV{i + 1/2}{j + 1/2}{k}
             - \Delta{x_1} \, \varepsilon_1^{[m]}\EvalAtV{i + 1/2}{j}{k - 1/2}
     \Bigg)
@@ -536,23 +522,20 @@ For the second RK stage (see the second set of grouped steps in \cref{fig:schema
         = \mVector{S}_\mathrm{c}^{[n]}\EvalAtV{i}{j}{k}
             &+ \frac{1}{2}\Bigg(
             D^{[n]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
-        \nonumber \\
-        &\nquad[3]
             + D^{[n + 1/2]}\sbrac{\mVector{S}_\mathrm{c}}\EvalAtV{i}{j}{k}
         \Bigg)
     ,
 \end{align}
 and similarly for the face-centred magnetic fields,
 \begin{align}
-    &b_0^{[n + 1]}\EvalAtV{i + 1/2}{j}{k}
+    \scalebox{0.925}{$\displaystyle
+    b_0^{[n + 1]}\EvalAtV{i + 1/2}{j}{k}
         = b_0^{[n]}\EvalAtV{i + 1/2}{j}{k}
             + \frac{1}{2}\Bigg(
-        \nonumber \\
-        &\nquad[3]
             D^{[n]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
             + D^{[n + 1/2]}\sbrac{b_0}\EvalAtV{i + 1/2}{j}{k}
         \Bigg)
-    , \label{eqn:rk2:update}
+    $}, \label{eqn:rk2:update}
 \end{align}
 
 We again check for physically invalid states $\mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtH{i}{j}{k}$ in any cells; if an invalid state is found, we replace the RK-averaged fluxes and EMFs on that cell's faces and edges (\cref{eqn:rk2:update}) outright with their cached FO equivalents, $\mVector{F}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j}{k}$ and $\mVector{\varepsilon}_\mathrm{FO}^{[n]}\EvalAtH{i \pm 1/2}{j \pm 1/2}{k}$, which reduces that cell's full time step to a first-order, forwards Euler update regardless of whether its first RK stage used HO or FO fluxes. We then recompute $\mVector{S}_\mathrm{c}^{[n + 1]}\EvalAtH{i}{j}{k}$ and $b_0^{[n + 1]}\EvalAtH{i + 1/2}{j}{k}$ in both the flagged cell and every cell sharing a face with it, using the replaced fluxes.
@@ -646,13 +629,11 @@ This wave shares the same grid-aligned geometry as the linearly-polarised Alfv\'
 
 Unlike both Alfv\'en waves, this wave follows from $\rho$ and $p$ both being perturbed alongside $\mVector{u}$ and $\mVector{b}$:
 \begin{align}
-    &\mVector{S}_\mathrm{c}^{[\delta\mathrm{fm}]}
+    \mVector{S}_\mathrm{c}^{[\delta\mathrm{fm}]}
+        \scalebox{0.925}{$\displaystyle
         = \delta_\mathrm{lin} \cos\sbrac{
                 \omega t - \mVector{k}\cdot\mVector{x}
             }
-        \nonumber \\
-        &\nquad[1]
-        \scalebox{0.925}{$\displaystyle
             \begin{Bmatrix}
                 \phi_1 \rho_\mathrm{bg} \\
                 c_\mathrm{fm} (
@@ -696,13 +677,11 @@ For this test we use $\mVectorUnit{n}_\mathrm{bg} = \{0,1,0\}$ and $\mVectorUnit
 
 Like the fast magnetosonic wave, this wave follows from the same combined magnetic and gas pressure restoring force, perturbing $\rho$ and $p$ alongside $\mVector{u}$ and $\mVector{b}$:
 \begin{align}
-    &\mVector{S}_\mathrm{c}^{[\delta\mathrm{sm}]}
+    \scalebox{0.925}{$\displaystyle
+    \mVector{S}_\mathrm{c}^{[\delta\mathrm{sm}]}
         = \delta_\mathrm{lin} \cos\sbrac{
                 \omega t - \mVector{k}\cdot\mVector{x}
             }
-        \nonumber \\
-        &\nquad[1]
-        \scalebox{0.925}{$\displaystyle
             \begin{Bmatrix}
                 \phi_1 \rho_\mathrm{bg} \\
                 c_\mathrm{sm} (
@@ -717,8 +696,7 @@ Like the fast magnetosonic wave, this wave follows from the same combined magnet
                             + \rho_\mathrm{bg} c_\mathrm{sm}^2 (\phi_1^2 + \phi_2^2)
                         }
             \end{Bmatrix}
-        $}
-    ,
+    $} ,
 \end{align}
 with $\mVectorUnit{n}_\perp$ as defined for the fast magnetosonic wave,
 \begin{align}
@@ -807,8 +785,9 @@ We test all six combinations of EMF compute scheme (\sref{sec:methods:emf:comput
 \subsubsection{The Ryu \& Jones (1995) shock tube}
 \label{sec:scheme-comparison:shocks:ryu-jones}
 
-For this test we set $\gamma=5/3$ and initialise the left half of the domain, $x_0 \leq x_\mathrm{shock}$, with the state:
+For this test we set $\gamma=5/3$ and initialise the left ($x_0 \leq x_\mathrm{shock}$) and right ($x_0 > x_\mathrm{shock}$) halves of the domain with the states
 \begin{align}
+\scalebox{0.95}{$\displaystyle
     \mVector{S}_\mathrm{c}^{[L]}
         = \begin{Bmatrix}
                 \rho \\
@@ -830,10 +809,7 @@ For this test we set $\gamma=5/3$ and initialise the left half of the domain, $x
                 3.6/\sqrt{4\pi} \\
                 2/\sqrt{4\pi}
             \end{Bmatrix}
-    ,
-\end{align}
-and the right half, $x_0 > x_\mathrm{shock}$, with the state:
-\begin{align}
+    , \qquad
     \mVector{S}_\mathrm{c}^{[R]}
         = \begin{Bmatrix}
                 \rho \\
@@ -855,6 +831,7 @@ and the right half, $x_0 > x_\mathrm{shock}$, with the state:
                 4/\sqrt{4\pi} \\
                 2/\sqrt{4\pi}
             \end{Bmatrix}
+$}
     .
 \end{align}
 We run this problem at a resolution of $512$ until $t=0.2$; we use a higher resolution than for the Brio-Wu test below, since this test has far richer wave structures and requires high resolution for numerical differences between the schemes to be visually discernible. We then compare every scheme to the exact solution at each cell position, computed using an exact Riemann solver \citep{Kriel26a}.
@@ -862,8 +839,9 @@ We run this problem at a resolution of $512$ until $t=0.2$; we use a higher reso
 \subsubsection{The Brio \& Wu (1988) shock tube}
 \label{sec:scheme-comparison:shocks:brio-wu}
 
-For this test we set $\gamma=2$ and initialise the left half of the domain, $x_0 \leq x_\mathrm{shock}$, with the state:
+For this test we set $\gamma=2$ and initialise the left ($x_0 \leq x_\mathrm{shock}$) and right ($x_0 > x_\mathrm{shock}$) halves of the domain with the states
 \begin{align}
+\scalebox{0.95}{$\displaystyle
     \mVector{S}_\mathrm{c}^{[L]}
         = \begin{Bmatrix}
                 \rho \\
@@ -885,10 +863,7 @@ For this test we set $\gamma=2$ and initialise the left half of the domain, $x_0
                 1 \\
                 0
             \end{Bmatrix}
-    ,
-\end{align}
-and the right half, $x_0 > x_\mathrm{shock}$, with the state:
-\begin{align}
+    , \qquad
     \mVector{S}_\mathrm{c}^{[R]}
         = \begin{Bmatrix}
                 \rho \\
@@ -910,6 +885,7 @@ and the right half, $x_0 > x_\mathrm{shock}$, with the state:
                 -1 \\
                 0
             \end{Bmatrix}
+$}
     .
 \end{align}
 We run this problem at a resolution of $256$ until $t = 0.1$. Unlike the Ryu-Jones test, the transverse magnetic field for this test is coplanar (\ie $b_2 = 0$ on both sides of the discontinuity), which means the rotational discontinuities of the exact 7-wave solution are degenerate. Since we do not have an exact solution available, we instead use, as our reference solution, a simulation using Q26 with \citetalias{Balsara25b} and PPM-EP, run at a much higher resolution of $8192$.
