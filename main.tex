@@ -15,35 +15,44 @@
 
     \pagenumbering{roman}
     \setcounter{page}{1}
-    
+
     \input{chapters/preamble/abstract}
     \input{chapters/preamble/statements}
     \input{chapters/preamble/publications}
     \input{chapters/preamble/thanks}
 
-    \tableofcontents
+    \begingroup
+        \setlength{\parskip}{0pt}
+        \singlespacing
+        \tableofcontents
+    \endgroup
+
     \clearpage
     \begingroup
         \footnotesize
+        \setlength{\parskip}{0pt}
+        \singlespacing
         \listoffigures
     \endgroup
-    
+
     \clearpage
     \begingroup
         \footnotesize
+        \setlength{\parskip}{0pt}
+        \singlespacing
         \listoftables
     \endgroup
 
     \clearpage
     \pagenumbering{arabic}
     \setcounter{page}{1}
-    
+
     \input{chapters/thesis/introduction}
     \input{chapters/papers/ssd-exp}
     \input{chapters/papers/ssd-nl}
     \input{chapters/papers/quokka-mhd}
     \input{chapters/thesis/conclusion}
-    
+
     \clearpage
     \renewcommand{\bibsection}{%
       \chapter*{References}%
